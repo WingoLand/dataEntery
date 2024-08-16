@@ -1,8 +1,7 @@
 import { useState } from "react";
 
 export default function AddAlphabet() {
-  const [capital, setCapital] = useState("");
-  const [small, setSmall] = useState("");
+  const [letter, setLetter] = useState("");
   const [word, setWord] = useState("");
   const [capPic, setCapPic] = useState(null);
   const [smallPic, setSmallPic] = useState(null);
@@ -10,15 +9,19 @@ export default function AddAlphabet() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const capitalizeFirstLetter = (string) => {
+      if (!string) return string; // Handle empty strings
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    };
 
-    if (!capital || !small || !word || !capPic || !smallPic || !wordPic) {
+    if (!letter || !word || !capPic || !smallPic || !wordPic) {
       alert("Please fill in all fields");
       return;
     }
     const formData = new FormData();
-    formData.append("capital", capital);
-    formData.append("small", small);
-    formData.append("word", word);
+    formData.append("capital", letter.toUpperCase());
+    formData.append("small", letter.toLowerCase());
+    formData.append("word", capitalizeFirstLetter(word));
     formData.append("capPic", capPic);
     formData.append("smallPic", smallPic);
     formData.append("wordPic", wordPic);
@@ -60,21 +63,11 @@ export default function AddAlphabet() {
       <form onSubmit={handleSubmit}>
         <div style={styles.field}>
           <label>
-            Capital:
+            letter:
             <input
               type="text"
-              value={capital}
-              onChange={(e) => setCapital(e.target.value.trim())}
-            />
-          </label>
-        </div>
-        <div style={styles.field}>
-          <label>
-            Small:
-            <input
-              type="text"
-              value={small}
-              onChange={(e) => setSmall(e.target.value.trim())}
+              value={letter}
+              onChange={(e) => setLetter(e.target.value.trim())}
             />
           </label>
         </div>
