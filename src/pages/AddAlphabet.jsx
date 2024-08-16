@@ -32,12 +32,12 @@ export default function AddAlphabet() {
         body: formData,
       });
       if (response.ok) {
+        alert("File uploaded successfully");
         setLetter("");
         setWord("");
         setCapPic(null);
         setSmallPic(null);
         setWordPic(null);
-        alert("File uploaded successfully");
         return console.log("File uploaded successfully:", response.data);
       }
       await response.json().then((data) => {
