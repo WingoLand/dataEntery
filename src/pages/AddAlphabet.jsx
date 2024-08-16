@@ -32,8 +32,7 @@ export default function AddAlphabet() {
         body: formData,
       });
       if (response.ok) {
-        setCapital("");
-        setSmall("");
+        setLetter("");
         setWord("");
         setCapPic(null);
         setSmallPic(null);
