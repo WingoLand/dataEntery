@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+import config from "../../config";
+
+const { BASE_URL } = config;
+
 export default function AddWord() {
   const [word, setWord] = useState("");
   const [pic, setPic] = useState("");
@@ -21,7 +25,7 @@ export default function AddWord() {
     formData.append("pic", pic);
 
     try {
-      const response = await fetch("http://localhost:3000/word", {
+      const response = await fetch(`${BASE_URL}/word`, {
         method: "POST",
         body: formData,
       });

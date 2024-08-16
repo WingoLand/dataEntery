@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+import config from "../../config";
+
+const { BASE_URL } = config;
+
 export default function AddAlphabet() {
   const [letter, setLetter] = useState("");
   const [word, setWord] = useState("");
@@ -27,7 +31,7 @@ export default function AddAlphabet() {
     formData.append("wordPic", wordPic);
 
     try {
-      const response = await fetch("http://localhost:3000/alphabet", {
+      const response = await fetch(`${BASE_URL}/alphabet`, {
         method: "POST",
         body: formData,
       });
