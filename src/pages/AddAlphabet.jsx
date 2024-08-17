@@ -13,6 +13,7 @@ export default function AddAlphabet() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const capitalizeFirstLetter = (string) => {
       if (!string) return string; // Handle empty strings
       return string.charAt(0).toUpperCase() + string.slice(1);
