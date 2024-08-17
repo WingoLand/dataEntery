@@ -3,6 +3,7 @@ import { useState } from "react";
 import AddAlphabet from "./pages/AddAlphabet";
 import AddWord from "./pages/AddWord";
 import config from "../config";
+// import ImageDisplay from "./pages/ImageDisplay";
 
 const { BASE_URL } = config;
 
@@ -65,6 +66,7 @@ function App() {
           Delete Database
         </button>
       </div>
+      {/* <ImageDisplay /> */}
     </>
   );
 }
