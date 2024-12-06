@@ -7,6 +7,7 @@ const { BASE_URL } = config;
 export default function AddWord() {
   const [word, setWord] = useState("");
   const [pic, setPic] = useState("");
+  const [choices, setChoices] = useState(["", "", ""]);
   const [category, setCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
 
@@ -45,6 +46,9 @@ export default function AddWord() {
     }
     formData.append("word", word.trim().toLowerCase());
     formData.append("pic", pic);
+    choices.forEach((choice) => {
+      formData.append("choices", choice.trim().toLowerCase());
+    });
 
     try {
       const response = await fetch(`${BASE_URL}/word`, {
@@ -135,6 +139,22 @@ export default function AddWord() {
             />
           </label>
         </div>
+        {[...Array(3)].map((_, index) => (
+          <div key={index} style={styles.field}>
+            <label>
+              Choice {index + 1}:
+              <input
+                type="text"
+                value={choices[index] || ""}
+                onChange={(e) => {
+                  const newChoices = [...choices];
+                  newChoices[index] = e.target.value;
+                  setChoices(newChoices);
+                }}
+              />
+            </label>
+          </div>
+        ))}
         <button type="submit">Submit</button>
       </form>
     </div>
