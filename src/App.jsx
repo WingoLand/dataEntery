@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import AddAlphabet from "./pages/AddAlphabet";
 import AddWord from "./pages/AddWord";
+import AddSentence from "./pages/AddSentence";
 import config from "../config";
 // import ImageDisplay from "./pages/ImageDisplay";
 
@@ -28,9 +29,16 @@ function App() {
         <button style={{ marginRight: 10 }} onClick={() => setPage("addWords")}>
           Add Words
         </button>
+        <button
+          style={{ marginRight: 10 }}
+          onClick={() => setPage("addSentence")}
+        >
+          Add Sentence
+        </button>
       </div>
       {page === "addAlphabet" && <AddAlphabet />}
       {page === "addWords" && <AddWord />}
+      {page === "addSentence" && <AddSentence />}
       <div
         style={{ marginTop: 100, display: "flex", justifyContent: "center" }}
       >
