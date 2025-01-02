@@ -47,6 +47,7 @@ export default function AddAlphabet() {
       }
       await response.json().then((data) => {
         alert(data.message);
+        console.log(data.err);
       });
     } catch (error) {
       console.error("Error uploading file:", error);
