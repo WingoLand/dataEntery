@@ -1,5 +1,5 @@
 //? http://localhost:3000
-//? https://game-based-learning-y5ol.onrender.com
+//? https://registration-system-api.onrender.com
 export default {
-  BASE_URL: "https://game-based-learning-y5ol.onrender.com",
+  BASE_URL: "https://registration-system-api.onrender.com",
 };
