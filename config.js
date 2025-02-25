@@ -1,5 +1,5 @@
 //? http://localhost:3000
-//? https://registration-system-api.onrender.com
+//? https://wigolandbackend.onrender.com
 export default {
-  BASE_URL: "https://registration-system-api.onrender.com",
+  BASE_URL: "https://wigolandbackend.onrender.com",
 };
