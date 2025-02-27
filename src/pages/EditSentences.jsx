@@ -60,6 +60,31 @@ export default function EditSentences() {
     setSelectedSentence({ ...selectedSentence, arabicSents: newArabicSents });
   };
 
+  const handleDelete = async () => {
+    if (!selectedSentence) return;
+
+    if (!window.confirm("Are you sure you want to delete this Sentence?"))
+      return;
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/sentence/deleteSentence/${selectedSentence._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Delete failed");
+
+      alert("Sentence deleted successfully!");
+      setShowModal(false);
+      fetchSentences();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       const response = await fetch(`${BASE_URL}/sentence/updateSentence`, {
@@ -213,11 +238,14 @@ export default function EditSentences() {
             </Form>
           </Modal.Body>
           <Modal.Footer className="justify-content-between">
+            <Button variant="danger" className="w-10" onClick={handleDelete}>
+              <i className="bi bi-trash"></i>
+            </Button>
             <Button variant="warning" className="w-25" onClick={handleSubmit}>
               update
             </Button>
             <Button variant="secondary" onClick={() => setShowModal(false)}>
-              Close
+              Cancel
             </Button>
           </Modal.Footer>
         </Modal>

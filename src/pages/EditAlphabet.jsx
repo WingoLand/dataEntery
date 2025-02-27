@@ -81,6 +81,30 @@ export default function EditAlphabet() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedLetter) return;
+
+    if (!window.confirm("Are you sure you want to delete this letter?")) return;
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/alphabet/deleteLetter/${selectedLetter.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Delete failed");
+
+      alert("Letter deleted successfully!");
+      setShowModal(false);
+      fetchAlphabet();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   const handleEditClick = (letter) => {
     setSelectedLetter(letter);
     setWord(letter.word || "");
@@ -203,7 +227,6 @@ export default function EditAlphabet() {
                 >
                   {previewPic ? (
                     <>
-                      {" "}
                       <Image
                         src={previewPic}
                         className="img-thumbnail rounded-circle shadow-sm border border-secondary"
@@ -237,11 +260,14 @@ export default function EditAlphabet() {
           )}
         </Modal.Body>
         <Modal.Footer style={{ justifyContent: "space-between" }}>
+          <Button variant="danger" className="w-10" onClick={handleDelete}>
+            <i className="bi bi-trash"></i>
+          </Button>
           <Button variant="warning" className="w-25" onClick={handleUpdate}>
             Update
           </Button>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
+            Cancel
           </Button>
         </Modal.Footer>
       </Modal>

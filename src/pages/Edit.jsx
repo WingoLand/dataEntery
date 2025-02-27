@@ -31,7 +31,7 @@ export default function Edit() {
           variant={page === "editSentence" ? "success" : "outline-success"}
           onClick={() => setPage("editSentence")}
         >
-          Edit Sentence
+          Edit Sentences
         </Button>
       </ButtonGroup>
 

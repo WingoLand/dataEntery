@@ -103,6 +103,29 @@ export default function EditWords() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedWord) return;
+    if (!window.confirm("Are you sure you want to delete this word?")) return;
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/word/deleteWord/${selectedWord.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Delete failed");
+
+      alert("Word deleted successfully!");
+      setShowModal(false);
+      fetchWords();
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   // Update word details on the backend
   const handleUpdate = async () => {
     if (!selectedWord) return;
@@ -296,11 +319,14 @@ export default function EditWords() {
           )}
         </Modal.Body>
         <Modal.Footer style={{ justifyContent: "space-between" }}>
+          <Button variant="danger" className="w-10" onClick={handleDelete}>
+            <i className="bi bi-trash"></i>
+          </Button>
           <Button variant="warning" className="w-25" onClick={handleUpdate}>
             Update
           </Button>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
+            Cancel
           </Button>
         </Modal.Footer>
       </Modal>
