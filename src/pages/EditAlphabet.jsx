@@ -9,6 +9,7 @@ import {
   Spinner,
   Form,
   Image,
+  Card,
 } from "react-bootstrap";
 
 const { BASE_URL } = config;
@@ -125,16 +126,24 @@ export default function EditAlphabet() {
       ) : message ? (
         <p className="text-danger">{message}</p>
       ) : (
-        <Row className="justify-content-center g-2">
+        <Row className="justify-content-center g-3">
           {alphabet.map((item) => (
-            <Col xs={4} sm={3} md={2} lg={1} key={item.id}>
-              <Button
-                variant="primary"
-                className="w-100 shadow-sm rounded-pill"
+            <Col xs={6} sm={4} md={3} lg={2} key={item.id}>
+              <Card
+                className="shadow-sm border-0 rounded text-center py-3 bg-info-subtle"
+                style={{ transition: "transform 0.2s", cursor: "pointer" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
                 onClick={() => handleEditClick(item)}
               >
-                {item.capital}
-              </Button>
+                <Card.Body>
+                  <h4 className="fw-bold text-dark"> {item.capital}</h4>
+                </Card.Body>
+              </Card>
             </Col>
           ))}
         </Row>
