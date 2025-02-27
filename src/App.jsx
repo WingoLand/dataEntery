@@ -1,81 +1,78 @@
-import { useState } from "react";
+// import { useState } from "react";
+// import { Container } from "react-bootstrap";
 
-import AddAlphabet from "./pages/AddAlphabet";
-import AddWord from "./pages/AddWord";
-import AddSentence from "./pages/AddSentence";
-import config from "../config";
-// import ImageDisplay from "./pages/ImageDisplay";
+// import Login from "./pages/Login";
+// import useLogInStore from "./store/loginStore";
+// import AddNew from "./pages/AddNew";
 
-const { BASE_URL } = config;
+// function App() {
+//   const { isLoggedIn } = useLogInStore();
+//   const [whatToShow, setWhatToShow] = useState("");
+
+//   return (
+//     <Container className="mt-4">
+//       {!isLoggedIn ? (
+//         <Login />
+//       ) : (
+//         <>
+//           {whatToShow === "" && (
+//             <button title="Add data" onClick={() => setWhatToShow("addNew")}>
+//               Add data
+//             </button>
+//           )}
+//           {whatToShow === "addNew" && <AddNew />}
+//         </>
+//       )}
+//     </Container>
+//   );
+// }
+
+// export default App;
+
+import { Container, Button, Card } from "react-bootstrap";
+
+import Login from "./pages/Login";
+import useLogInStore from "./store/loginStore";
+import useViewStore from "./store/viewStore";
+import AddNew from "./pages/AddNew";
+import Edit from "./pages/Edit";
 
 function App() {
-  const [page, setPage] = useState("addAlphabet");
-  return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "20px",
-          margin: "10px",
-        }}
-      >
-        <button
-          style={{ marginRight: 10 }}
-          onClick={() => setPage("addAlphabet")}
-        >
-          Add Alphabet
-        </button>
-        <button style={{ marginRight: 10 }} onClick={() => setPage("addWords")}>
-          Add Words
-        </button>
-        <button
-          style={{ marginRight: 10 }}
-          onClick={() => setPage("addSentence")}
-        >
-          Add Sentence
-        </button>
-      </div>
-      {page === "addAlphabet" && <AddAlphabet />}
-      {page === "addWords" && <AddWord />}
-      {page === "addSentence" && <AddSentence />}
-      <div
-        style={{ marginTop: 100, display: "flex", justifyContent: "center" }}
-      >
-        <button
-          style={{
-            backgroundColor: "pink",
-            borderColor: "red",
-            width: 300,
-            height: 50,
-            fontSize: 20,
-            fontWeight: "bold",
-          }}
-          onClick={async () => {
-            const confirmDelete = window.confirm(
-              "Are you sure you want to delete the database?"
-            );
+  const { isLoggedIn } = useLogInStore();
+  const { view, setView } = useViewStore();
 
-            if (confirmDelete) {
-              try {
-                await fetch(`${BASE_URL}/deleteDB`, {
-                  method: "DELETE",
-                })
-                  .then((res) => res.json())
-                  .then((data) => {
-                    alert(data.message);
-                  });
-              } catch (error) {
-                alert("Error deleting database: " + error.message);
-              }
-            }
-          }}
-        >
-          Delete Database
-        </button>
-      </div>
-      {/* <ImageDisplay /> */}
-    </>
+  return (
+    <Container className="mt-4 d-flex justify-content-center align-items-center">
+      {!isLoggedIn ? (
+        <Login />
+      ) : (
+        <>
+          {view === "" && (
+            <Card
+              className="p-4 shadow-lg text-center w-100 gap-2"
+              style={{ maxWidth: "500px" }}
+            >
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={() => setView("addNew")}
+              >
+                Add Data
+              </Button>
+              <Button
+                variant="primary"
+                className="w-100"
+                onClick={() => setView("edit")}
+              >
+                Edit Data
+              </Button>
+            </Card>
+          )}
+          {view === "addNew" && <AddNew />}
+          {view === "edit" && <Edit />}
+        </>
+      )}
+    </Container>
   );
 }
 
