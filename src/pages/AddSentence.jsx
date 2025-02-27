@@ -223,7 +223,9 @@ export default function AddSentence() {
   const [arabicSentences, setArabicSentences] = useState(["", "", ""]);
   const [correctArabicSent, setCorrectArabicSent] = useState(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
     const data = {
       sent1,
       sent2,
@@ -255,7 +257,7 @@ export default function AddSentence() {
     <Container className="mt-4 mb-4">
       <h2 className="text-center mb-4">Add Sentence</h2>
       <Form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => handleSubmit(e)}
         className="p-3 border rounded shadow-sm bg-light"
       >
         <Row>

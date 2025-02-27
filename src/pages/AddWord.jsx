@@ -231,6 +231,9 @@ export default function AddWord() {
         setWord("");
         setCategory(newCategory ? newCategory : category);
         setNewCategory("");
+        setPic(null);
+        setChoices(["", "", ""]);
+
         return;
       }
       await response.json().then((data) => {
