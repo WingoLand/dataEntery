@@ -42,7 +42,7 @@ function App() {
   const { view, setView } = useViewStore();
 
   return (
-    <Container className="mt-4 d-flex justify-content-center align-items-center">
+    <Container className="mt-5 d-flex  justify-content-center">
       {!isLoggedIn ? (
         <Login />
       ) : (

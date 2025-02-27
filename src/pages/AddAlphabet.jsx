@@ -55,7 +55,7 @@ export default function AddAlphabet() {
   };
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4 mb-4">
       <h2 className="text-center mb-4">Add Alphabet</h2>
       <Form
         onSubmit={handleSubmit}

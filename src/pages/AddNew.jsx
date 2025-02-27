@@ -30,7 +30,7 @@ export default function AddNew() {
   };
 
   return (
-    <Container className="mt-4">
+    <Container>
       {/* Floating Home Button */}
       <HomeButton />
 
@@ -52,7 +52,7 @@ export default function AddNew() {
           variant={page === "addSentence" ? "success" : "outline-success"}
           onClick={() => setPage("addSentence")}
         >
-          Add Sentence
+          Add Sentences
         </Button>
       </ButtonGroup>
 
