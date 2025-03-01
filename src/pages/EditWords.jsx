@@ -17,19 +17,24 @@ const { BASE_URL } = config;
 
 export default function EditWords() {
   const [words, setWords] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedWord, setSelectedWord] = useState(null);
   const [category, setCategory] = useState("");
   const [word, setWord] = useState("");
+  const [arabicWord, setArabicWord] = useState("");
   const [wordPic, setWordPic] = useState(null);
   const [choices, setChoices] = useState(["", "", ""]);
+  const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
   const [tempWordPic, setTempWordPic] = useState(null);
   const [editableFields, setEditableFields] = useState({
     category: false,
     word: false,
+    arabicWord: false,
     choices: [false, false, false],
+    arabicChoices: [false, false, false],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,8 +54,6 @@ export default function EditWords() {
       const response = await fetch(`${BASE_URL}/word`);
       if (!response.ok) throw new Error("Failed to load words.");
       const data = await response.json();
-      console.log(data[0]);
-
       setWords(data);
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
@@ -68,13 +71,17 @@ export default function EditWords() {
     setSelectedWord(wordItem);
     setCategory(wordItem.category || "");
     setWord(wordItem.word || "");
+    setArabicWord(wordItem.wordInArabic || "");
     setWordPic(wordItem.pic || null);
     setChoices(wordItem.choices || ["", "", ""]);
+    setArabicChoices(wordItem.arabicChoices || ["", "", ""]);
     setTempWordPic(null);
     setEditableFields({
       category: false,
       word: false,
+      arabicWord: false,
       choices: Array(wordItem.choices?.length || 3).fill(false),
+      arabicChoices: Array(wordItem.arabicChoices?.length || 3).fill(false),
     });
     setShowModal(true);
   };
@@ -83,9 +90,16 @@ export default function EditWords() {
   const toggleEditable = (field, index = null) => {
     setEditableFields((prev) => {
       if (index !== null) {
-        const updatedChoices = [...prev.choices];
-        updatedChoices[index] = !updatedChoices[index];
-        return { ...prev, choices: updatedChoices };
+        if (field === "choices") {
+          const updatedChoices = [...prev.choices];
+          updatedChoices[index] = !updatedChoices[index];
+          return { ...prev, choices: updatedChoices };
+        }
+        if (field === "arabicChoices") {
+          const updatedChoices = [...prev.arabicChoices];
+          updatedChoices[index] = !updatedChoices[index];
+          return { ...prev, arabicChoices: updatedChoices };
+        }
       }
       return { ...prev, [field]: !prev[field] };
     });
@@ -129,7 +143,13 @@ export default function EditWords() {
   // Update word details on the backend
   const handleUpdate = async () => {
     if (!selectedWord) return;
-    if (!category || !word || choices.some((choice) => choice.trim() === "")) {
+    if (
+      !category ||
+      !word ||
+      !arabicWord ||
+      choices.some((choice) => choice.trim() === "") ||
+      arabicChoices.some((choice) => choice.trim() === "")
+    ) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -138,8 +158,12 @@ export default function EditWords() {
     formData.append("id", selectedWord.id);
     formData.append("category", category.trim().toLowerCase());
     formData.append("word", word.trim().toLowerCase());
+    formData.append("wordInArabic", arabicWord.trim());
     choices.forEach((choice) => {
       formData.append("choices", choice.trim().toLowerCase());
+    });
+    arabicChoices.forEach((choice) => {
+      formData.append("arabicChoices", choice.trim());
     });
     if (tempWordPic) {
       const binary = atob(tempWordPic.split(",")[1]);
@@ -265,6 +289,28 @@ export default function EditWords() {
                 </div>
               </Form.Group>
 
+              {/* Arabic Word */}
+              <Form.Group className="mt-3">
+                <Form.Label className="fw-semibold">Arabic Word</Form.Label>
+                <div className="d-flex align-items-center">
+                  <Form.Control
+                    type="text"
+                    value={arabicWord}
+                    onChange={(e) => setArabicWord(e.target.value)}
+                    readOnly={!editableFields.arabicWord}
+                  />
+                  <i
+                    className={`ms-2 bi ${
+                      editableFields.arabicWord
+                        ? "bi-check-circle-fill text-success"
+                        : "bi-pencil-square text-primary"
+                    }`}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => toggleEditable("arabicWord")}
+                  ></i>
+                </div>
+              </Form.Group>
+
               {/* Word Picture */}
               <Form.Group className="mt-3">
                 <Form.Label className="fw-semibold">Word Picture</Form.Label>
@@ -288,9 +334,9 @@ export default function EditWords() {
                 </div>
               </Form.Group>
 
-              {/* Choices */}
+              {/* English Choices */}
               <Form.Group className="mt-3">
-                <Form.Label className="fw-semibold">Choices</Form.Label>
+                <Form.Label className="fw-semibold">English Choices</Form.Label>
                 {choices.map((choice, index) => (
                   <div key={index} className="d-flex align-items-center mt-2">
                     <Form.Control
@@ -311,6 +357,34 @@ export default function EditWords() {
                       }`}
                       style={{ cursor: "pointer" }}
                       onClick={() => toggleEditable("choices", index)}
+                    ></i>
+                  </div>
+                ))}
+              </Form.Group>
+
+              {/* Arabic Choices */}
+              <Form.Group className="mt-3">
+                <Form.Label className="fw-semibold">Arabic Choices</Form.Label>
+                {arabicChoices.map((choice, index) => (
+                  <div key={index} className="d-flex align-items-center mt-2">
+                    <Form.Control
+                      type="text"
+                      value={choice}
+                      onChange={(e) => {
+                        const updatedChoices = [...arabicChoices];
+                        updatedChoices[index] = e.target.value;
+                        setArabicChoices(updatedChoices);
+                      }}
+                      readOnly={!editableFields.arabicChoices[index]}
+                    />
+                    <i
+                      className={`ms-2 bi ${
+                        editableFields.arabicChoices[index]
+                          ? "bi-check-circle-fill text-success"
+                          : "bi-pencil-square text-primary"
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => toggleEditable("arabicChoices", index)}
                     ></i>
                   </div>
                 ))}

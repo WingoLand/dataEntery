@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Container,
-  Form,
-  Button,
-  Row,
-  Col,
-  Alert,
-  Card,
-} from "react-bootstrap";
+import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
 import config from "../../config";
 
 const { BASE_URL } = config;
@@ -15,14 +7,18 @@ const { BASE_URL } = config;
 export default function AddWord() {
   const [dbWords, setDbWords] = useState([]);
   const [word, setWord] = useState("");
+  const [arabicWord, setArabicWord] = useState("");
+  const [arabicWords, setArabicWords] = useState([]);
   const [pic, setPic] = useState(null);
   const [choices, setChoices] = useState(["", "", ""]);
+  const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
   const [category, setCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [words, setWords] = useState([]);
   const [Pics, setPics] = useState([]);
   const [allChoices, setAllChoices] = useState([]);
+  const [allArabicChoices, setAllArabicChoices] = useState([]);
 
   const fetchCategories = async () => {
     try {
@@ -69,7 +65,11 @@ export default function AddWord() {
     );
     const newWords = words.map((word, index) => ({
       word: word.trim().toLowerCase(),
+      wordInArabic: arabicWords[index].trim().toLowerCase(),
       choices: allChoices[index].map((choice) => choice.trim().toLowerCase()),
+      arabicChoices: allArabicChoices[index].map((choice) =>
+        choice.trim().toLowerCase()
+      ),
     }));
     formData.append("words", JSON.stringify(newWords));
     Pics.forEach((pic) => formData.append("pics", pic));
@@ -83,8 +83,10 @@ export default function AddWord() {
       if (response.ok) {
         alert("Words uploaded successfully");
         setWords([]);
+        setArabicWords([]);
         setPics([]);
         setAllChoices([]);
+        setAllArabicChoices([]);
         setCategory("");
         setNewCategory("");
       } else {
@@ -98,7 +100,13 @@ export default function AddWord() {
 
   const handleAdd = () => {
     if (words.length - 1 >= 5) return alert("Submit these 6 words first !");
-    if (!word || !pic || choices.some((choice) => !choice)) {
+    if (
+      !word ||
+      !arabicWord ||
+      !pic ||
+      choices.some((choice) => !choice) ||
+      arabicChoices.some((choice) => !choice)
+    ) {
       alert("Please fill in all fields before adding.");
       return;
     }
@@ -110,11 +118,15 @@ export default function AddWord() {
       return;
     }
     setWords([...words, word]);
+    setArabicWords([...arabicWords, arabicWord]);
     setPics([...Pics, pic]);
     setAllChoices([...allChoices, choices]);
+    setAllArabicChoices([...allArabicChoices, arabicChoices]);
+    setArabicWord("");
     setWord("");
     setPic(null);
     setChoices(["", "", ""]);
+    setArabicChoices(["", "", ""]);
   };
 
   return (
@@ -136,7 +148,6 @@ export default function AddWord() {
                 onChange={(e) => {
                   if (!category && !newCategory)
                     return setCategory(e.target.value);
-
                   alert("enter 6 words of the same category !");
                 }}
               >
@@ -167,6 +178,12 @@ export default function AddWord() {
             value={word}
             onChange={(e) => setWord(e.target.value)}
           />
+          <Form.Label>Meaning in Arabic</Form.Label>
+          <Form.Control
+            type="text"
+            value={arabicWord}
+            onChange={(e) => setArabicWord(e.target.value)}
+          />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Picture</Form.Label>
@@ -178,7 +195,7 @@ export default function AddWord() {
         </Form.Group>
         {[...Array(3)].map((_, index) => (
           <Form.Group key={index} className="mb-3">
-            <Form.Label>Choice {index + 1}</Form.Label>
+            <Form.Label>English Choice {index + 1}</Form.Label>
             <Form.Control
               type="text"
               value={choices[index] || ""}
@@ -186,6 +203,21 @@ export default function AddWord() {
                 const newChoices = [...choices];
                 newChoices[index] = e.target.value;
                 setChoices(newChoices);
+              }}
+            />
+          </Form.Group>
+        ))}
+        <hr />
+        {[...Array(3)].map((_, index) => (
+          <Form.Group key={index} className="mb-3">
+            <Form.Label>Arabic Choice {index + 1}</Form.Label>
+            <Form.Control
+              type="text"
+              value={arabicChoices[index] || ""}
+              onChange={(e) => {
+                const newArabicChoices = [...arabicChoices];
+                newArabicChoices[index] = e.target.value;
+                setArabicChoices(newArabicChoices);
               }}
             />
           </Form.Group>
