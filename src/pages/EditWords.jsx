@@ -54,6 +54,8 @@ export default function EditWords() {
       const response = await fetch(`${BASE_URL}/word`);
       if (!response.ok) throw new Error("Failed to load words.");
       const data = await response.json();
+      console.log(data[0]);
+
       setWords(data);
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
@@ -315,21 +317,33 @@ export default function EditWords() {
               <Form.Group className="mt-3">
                 <Form.Label className="fw-semibold">Word Picture</Form.Label>
                 <div className="d-flex align-items-center gap-3 flex-wrap">
-                  <Image
-                    src={
-                      tempWordPic
-                        ? tempWordPic
-                        : wordPic
-                        ? `data:${wordPic.contentType};base64,${wordPic.data}`
-                        : "https://via.placeholder.com/100?text=No+Image"
-                    }
-                    className="img-thumbnail rounded-circle shadow-sm border border-secondary"
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      objectFit: "cover",
-                    }}
-                  />
+                  {tempWordPic || wordPic.contentType ? (
+                    <Image
+                      src={
+                        tempWordPic
+                          ? tempWordPic
+                          : wordPic
+                          ? `data:${wordPic.contentType};base64,${wordPic.data}`
+                          : "https://via.placeholder.com/100?text=No+Image"
+                      }
+                      className="img-thumbnail rounded-circle shadow-sm border border-secondary"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <label
+                      className="img-thumbnail rounded-circle shadow-sm border border-secondary d-flex justify-content-center align-items-center"
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                      }}
+                    >
+                      no Image
+                    </label>
+                  )}
                   <Form.Control type="file" onChange={handleFileChange} />
                 </div>
               </Form.Group>

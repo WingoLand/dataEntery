@@ -103,7 +103,6 @@ export default function AddWord() {
     if (
       !word ||
       !arabicWord ||
-      !pic ||
       choices.some((choice) => !choice) ||
       arabicChoices.some((choice) => !choice)
     ) {
@@ -119,7 +118,10 @@ export default function AddWord() {
     }
     setWords([...words, word]);
     setArabicWords([...arabicWords, arabicWord]);
-    setPics([...Pics, pic]);
+    setPics([
+      ...Pics,
+      pic ? pic : new File([""], "dummy.png", { type: "image/png" }),
+    ]);
     setAllChoices([...allChoices, choices]);
     setAllArabicChoices([...allArabicChoices, arabicChoices]);
     setArabicWord("");
@@ -253,15 +255,21 @@ export default function AddWord() {
             {words.map((word, index) => (
               <Card
                 key={index}
-                className="me-3 p-2 border rounded shadow-sm"
+                className="me-3 p-2 border rounded shadow-sm "
                 style={{ width: "150px" }}
               >
                 <Card.Body>
-                  <Card.Img
-                    variant="top"
-                    src={URL.createObjectURL(Pics[index])}
-                    alt={word}
-                  />
+                  {Pics[index].name != "dummy.png" ? (
+                    <Card.Img
+                      variant="top"
+                      src={URL.createObjectURL(Pics[index])}
+                      alt={word}
+                    />
+                  ) : (
+                    <Card.Text className="text-center">
+                      {arabicWords[index]}
+                    </Card.Text>
+                  )}
                   <Card.Title className="text-center mt-2">{word}</Card.Title>
                 </Card.Body>
               </Card>
