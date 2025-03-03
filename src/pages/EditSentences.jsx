@@ -96,7 +96,7 @@ export default function EditSentences() {
       });
       const data = await response.json();
       if (!response.ok) alert(data.message || "Update failed");
-      alert("Word updated successfully!");
+      alert("Sentence updated successfully!");
       setShowModal(false);
       setLoading(true);
       fetchSentences();
@@ -238,9 +238,9 @@ export default function EditSentences() {
             </Form>
           </Modal.Body>
           <Modal.Footer className="justify-content-between">
-            <Button variant="danger" className="w-10" onClick={handleDelete}>
+            {/* <Button variant="danger" className="w-10" onClick={handleDelete}>
               <i className="bi bi-trash"></i>
-            </Button>
+            </Button> */}
             <Button variant="warning" className="w-25" onClick={handleSubmit}>
               update
             </Button>

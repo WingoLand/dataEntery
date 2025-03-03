@@ -260,9 +260,9 @@ export default function EditAlphabet() {
           )}
         </Modal.Body>
         <Modal.Footer style={{ justifyContent: "space-between" }}>
-          <Button variant="danger" className="w-10" onClick={handleDelete}>
+          {/* <Button variant="danger" className="w-10" onClick={handleDelete}>
             <i className="bi bi-trash"></i>
-          </Button>
+          </Button> */}
           <Button variant="warning" className="w-25" onClick={handleUpdate}>
             Update
           </Button>

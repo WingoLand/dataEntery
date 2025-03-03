@@ -231,6 +231,7 @@ export default function AddSentence() {
           sentences: sentences.map((s) => ({
             ...s,
             correctArabicSent: Number(s.correctArabicSent), // Convert before sending
+            correct: Number(s.correct), // Convert before sending
           })),
         }),
       });
