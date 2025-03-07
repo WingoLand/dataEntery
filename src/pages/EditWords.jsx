@@ -22,6 +22,8 @@ export default function EditWords() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedWord, setSelectedWord] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [chosenCategory, setChosenCategory] = useState("");
   const [category, setCategory] = useState("");
   const [word, setWord] = useState("");
   const [arabicWord, setArabicWord] = useState("");
@@ -49,12 +51,19 @@ export default function EditWords() {
   }, [searchTerm, words]); // Re-run filtering when search term or words list changes
 
   // Fetch all words from the backend
-  const fetchWords = async () => {
+  const fetchWords = async (category) => {
+    setChosenCategory(category);
+    setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/word`);
+      const response = await fetch(`${BASE_URL}/word/category`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ category }),
+      });
       if (!response.ok) throw new Error("Failed to load words.");
       const data = await response.json();
-      console.log(data[0]);
 
       setWords(data);
     } catch (err) {
@@ -64,8 +73,21 @@ export default function EditWords() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/word/categories`);
+      if (!response.ok) throw new Error("Failed to load categories.");
+      const data = await response.json();
+      setCategories(data);
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchWords();
+    fetchCategories();
   }, []);
 
   // Handle opening the modal and pre-filling form fields
@@ -136,7 +158,7 @@ export default function EditWords() {
 
       alert("Word deleted successfully!");
       setShowModal(false);
-      fetchWords();
+      fetchWords(chosenCategory);
     } catch (error) {
       alert(error.message);
     }
@@ -209,18 +231,34 @@ export default function EditWords() {
         <Spinner animation="border" className="mt-3" />
       ) : error ? (
         <Alert variant="danger">{error}</Alert>
-      ) : words.length === 0 ? (
+      ) : !categories ? (
+        <Alert variant="info">No categories available.</Alert>
+      ) : chosenCategory && words.length === 0 ? (
         <Alert variant="info">No words available.</Alert>
       ) : (
         <Row className="justify-content-center g-3">
-          {words
-            .filter((wordItem) =>
-              wordItem.word.toLowerCase().includes(searchTerm)
-            )
-            .map((wordItem) => (
-              <Col xs={6} sm={4} md={3} lg={2} key={wordItem.id}>
+          <h3 className="fw-semibold text-info mb-1">
+            {!chosenCategory ? (
+              "Categories"
+            ) : (
+              <>
+                Words in{" "}
+                <span className="text-light fw-normal fs-6 bg-secondary p-2 rounded-3">
+                  {chosenCategory}{" "}
+                  <i
+                    className="bi bi-x-circle"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setChosenCategory("")}
+                  ></i>
+                </span>
+              </>
+            )}
+          </h3>
+          {!chosenCategory &&
+            categories.map((category, i) => (
+              <Col xs={6} sm={4} md={3} lg={2} key={i}>
                 <Card
-                  className="shadow-sm border-0 rounded text-center py-3 bg-info-subtle"
+                  className="shadow-sm border-0 rounded text-center py-3 bg-warning-subtle"
                   style={{ transition: "transform 0.2s", cursor: "pointer" }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.transform = "scale(1.05)")
@@ -228,14 +266,38 @@ export default function EditWords() {
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.transform = "scale(1)")
                   }
-                  onClick={() => handleEditClick(wordItem)}
+                  onClick={() => fetchWords(category)}
                 >
                   <Card.Body>
-                    <h4 className="fw-bold text-dark">{wordItem.word}</h4>
+                    <h4 className="fw-bold text-dark">{category}</h4>
                   </Card.Body>
                 </Card>
               </Col>
             ))}
+          {chosenCategory &&
+            words
+              .filter((wordItem) =>
+                wordItem.word.toLowerCase().includes(searchTerm)
+              )
+              .map((wordItem) => (
+                <Col xs={6} sm={4} md={3} lg={2} key={wordItem.id}>
+                  <Card
+                    className="shadow-sm border-0 rounded text-center py-3 bg-info-subtle"
+                    style={{ transition: "transform 0.2s", cursor: "pointer" }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.transform = "scale(1.05)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                    onClick={() => handleEditClick(wordItem)}
+                  >
+                    <Card.Body>
+                      <h4 className="fw-bold text-dark">{wordItem.word}</h4>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
         </Row>
       )}
 

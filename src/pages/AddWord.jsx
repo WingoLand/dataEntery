@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
 import config from "../../config";
+import randomizeChoices from "../modules/randomizeChoices.js";
 
 const { BASE_URL } = config;
 
@@ -19,6 +20,7 @@ export default function AddWord() {
   const [Pics, setPics] = useState([]);
   const [allChoices, setAllChoices] = useState([]);
   const [allArabicChoices, setAllArabicChoices] = useState([]);
+  const [genCategory, setGenCategory] = useState("");
 
   const fetchCategories = async () => {
     try {
@@ -66,10 +68,13 @@ export default function AddWord() {
     const newWords = words.map((word, index) => ({
       word: word.trim().toLowerCase(),
       wordInArabic: arabicWords[index].trim().toLowerCase(),
-      choices: allChoices[index].map((choice) => choice.trim().toLowerCase()),
-      arabicChoices: allArabicChoices[index].map((choice) =>
-        choice.trim().toLowerCase()
+      choices: randomizeChoices(words.filter((_, i) => i !== index)).map(
+        (choice) => choice.trim().toLowerCase(),
+        3
       ),
+      arabicChoices: randomizeChoices(
+        arabicWords.filter((_, i) => i !== index)
+      ).map((choice) => choice.trim().toLowerCase(), 3),
     }));
     formData.append("words", JSON.stringify(newWords));
     Pics.forEach((pic) => formData.append("pics", pic));
@@ -98,22 +103,72 @@ export default function AddWord() {
     }
   };
 
+  function validateCategory(genCategory, newCategory, category) {
+    // Helper function to normalize category values
+    const normalize = (value) => {
+      if (!value || typeof value !== "string") return ""; // Handle invalid inputs
+      return value.trim().toLowerCase();
+    };
+
+    // Normalize all category values
+    const normalizedGenCategory = normalize(genCategory);
+    const normalizedNewCategory = normalize(newCategory);
+    const normalizedCategory = normalize(category);
+
+    // Determine the effective category to use
+    const effectiveCategory = normalizedNewCategory || normalizedCategory;
+
+    // If genCategory is not set, initialize it
+    if (!normalizedGenCategory) {
+      return effectiveCategory; // Return the new category to set
+    }
+
+    // Ensure all words belong to the same category
+    if (normalizedGenCategory !== effectiveCategory) {
+      throw new Error("All words must belong to the same category.");
+    }
+
+    // Return the existing genCategory if everything is valid
+    return normalizedGenCategory;
+  }
+
   const handleAdd = () => {
+    try {
+      const updatedGenCategory = validateCategory(
+        genCategory,
+        newCategory,
+        category
+      );
+      setGenCategory(updatedGenCategory); // Update the category state
+    } catch (error) {
+      alert(error.message); // Display the error message to the user
+    }
+
     if (words.length - 1 >= 5) return alert("Submit these 6 words first !");
+
     if (
       !word ||
       !arabicWord ||
-      choices.some((choice) => !choice) ||
-      arabicChoices.some((choice) => !choice)
+      !pic
+      // ||choices.some((choice) => !choice) ||
+      // arabicChoices.some((choice) => !choice)
     ) {
       alert("Please fill in all fields before adding.");
       return;
     }
-    const wordExists = dbWords.some(
-      (dbWord) => dbWord.word.toLowerCase() === word.toLowerCase()
+    let wordExists = dbWords.some(
+      (dbWord) =>
+        dbWord.word.toLowerCase() === word.toLowerCase() &&
+        dbWord.category === (newCategory ? newCategory : category)
     );
     if (wordExists) {
-      alert("This word already exists in the database.");
+      alert("This word already exists in this category in database!");
+      return;
+    }
+
+    wordExists = words.includes(word);
+    if (wordExists) {
+      alert("This word already added to the list!");
       return;
     }
     setWords([...words, word]);
@@ -122,13 +177,13 @@ export default function AddWord() {
       ...Pics,
       pic ? pic : new File([""], "dummy.png", { type: "image/png" }),
     ]);
-    setAllChoices([...allChoices, choices]);
-    setAllArabicChoices([...allArabicChoices, arabicChoices]);
+    // setAllChoices([...allChoices, choices]);
+    // setAllArabicChoices([...allArabicChoices, arabicChoices]);
     setArabicWord("");
     setWord("");
     setPic(null);
-    setChoices(["", "", ""]);
-    setArabicChoices(["", "", ""]);
+    // setChoices(["", "", ""]);
+    // setArabicChoices(["", "", ""]);
   };
 
   return (
@@ -147,11 +202,7 @@ export default function AddWord() {
               <Form.Label>Category</Form.Label>
               <Form.Select
                 value={category}
-                onChange={(e) => {
-                  if (!category && !newCategory)
-                    return setCategory(e.target.value);
-                  alert("enter 6 words of the same category !");
-                }}
+                onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="">Choose a category</option>
                 {categories.map((category) => (
@@ -195,7 +246,7 @@ export default function AddWord() {
             onChange={(e) => setPic(e.target.files[0])}
           />
         </Form.Group>
-        {[...Array(3)].map((_, index) => (
+        {/* {[...Array(3)].map((_, index) => (
           <Form.Group key={index} className="mb-3">
             <Form.Label>English Choice {index + 1}</Form.Label>
             <Form.Control
@@ -208,8 +259,8 @@ export default function AddWord() {
               }}
             />
           </Form.Group>
-        ))}
-        <hr />
+        ))} */}
+        {/* <hr />
         {[...Array(3)].map((_, index) => (
           <Form.Group key={index} className="mb-3">
             <Form.Label>Arabic Choice {index + 1}</Form.Label>
@@ -223,7 +274,7 @@ export default function AddWord() {
               }}
             />
           </Form.Group>
-        ))}
+        ))} */}
         <Row className="w-100 justify-content-space-between">
           <Col
             xs={6}

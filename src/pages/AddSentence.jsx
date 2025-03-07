@@ -140,6 +140,7 @@
 import { useEffect, useState } from "react";
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import config from "../../config";
+import randomizeChoices from "../modules/randomizeChoices";
 
 const { BASE_URL } = config;
 
@@ -148,10 +149,13 @@ export default function AddSentence() {
   const [sentences, setSentences] = useState([]);
   const [sent1, setSent1] = useState("");
   const [sent2, setSent2] = useState("");
-  const [choices, setChoices] = useState(["", "", "", ""]);
-  const [correctChoice, setCorrectChoice] = useState(null);
-  const [arabicSentences, setArabicSentences] = useState(["", "", ""]);
-  const [correctArabicSent, setCorrectArabicSent] = useState(null);
+  // const [choices, setChoices] = useState(["", "", "", ""]);
+  const [choice, setChoice] = useState("");
+  const [wrongChoices, setWrongChoices] = useState(["", "", ""]);
+  // const [correctChoice, setCorrectChoice] = useState(null);
+  const [arabicSentence, setArabicSentence] = useState("");
+  // const [arabicSentences, setArabicSentences] = useState(["", "", ""]);
+  // const [correctArabicSent, setCorrectArabicSent] = useState(null);
 
   const handleAdd = () => {
     if (sentences.length >= 6) {
@@ -164,8 +168,10 @@ export default function AddSentence() {
         (sentence) =>
           sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
           sentence.sent2.toLowerCase() === sent2.toLowerCase() &&
-          sentence.choices[sentence.correct].toLowerCase() ===
-            choices[correctChoice].toLowerCase()
+          sentence.choices.includes(choice.toLowerCase())
+
+        // sentence.choices[sentence.correct].toLowerCase() ===
+        //   choices[correctChoice].toLowerCase()
       )
     ) {
       alert("This sentence is already added!");
@@ -178,8 +184,9 @@ export default function AddSentence() {
         (sentence) =>
           sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
           sentence.sent2.toLowerCase() === sent2.toLowerCase() &&
-          sentence.choices[sentence.correct].toLowerCase() ===
-            choices[correctChoice].toLowerCase()
+          sentence.choices.includes(choice.toLowerCase())
+        // sentence.choices[sentence.correct].toLowerCase() ===
+        //   choices[correctChoice].toLowerCase()
       )
     ) {
       alert("This sentence is already in the database!");
@@ -189,8 +196,11 @@ export default function AddSentence() {
     if (
       !sent1 ||
       !sent2 ||
-      choices.some((choice) => !choice) ||
-      arabicSentences.some((sentence) => !sentence)
+      !choice ||
+      !arabicSentence ||
+      wrongChoices.some((choice) => !choice)
+      // choices.some((choice) => !choice) ||
+      // arabicSentences.some((sentence) => !sentence)
     ) {
       alert("Please fill in all fields before adding.");
       return;
@@ -199,19 +209,21 @@ export default function AddSentence() {
     const newSentence = {
       sent1: sent1,
       sent2: sent2,
-      choices: choices,
-      correct: correctChoice,
-      arabicSents: arabicSentences,
-      correctArabicSent: correctArabicSent,
+      choices: [choice, ...wrongChoices],
+      correct: Number(0),
+      arabicSentence,
     };
 
     setSentences([...sentences, newSentence]);
     setSent1("");
     setSent2("");
-    setChoices(["", "", "", ""]);
-    setCorrectChoice(null);
-    setArabicSentences(["", "", ""]);
-    setCorrectArabicSent(null);
+    setChoice("");
+    setWrongChoices(["", "", ""]);
+    setArabicSentence("");
+    // setChoices(["", "", "", ""]);
+    // setCorrectChoice(null);
+    // setArabicSentences(["", "", ""]);
+    // setCorrectArabicSent(null);
   };
 
   const handleSubmit = async (e) => {
@@ -221,6 +233,23 @@ export default function AddSentence() {
       return;
     }
 
+    const newSentences = sentences.map((sentence, index) => ({
+      sent1: sentence.sent1,
+      sent2: sentence.sent2,
+      choices: sentence.choices,
+      correct: sentence.correct,
+      arabicSents: [
+        sentence.arabicSentence,
+        ...randomizeChoices(
+          sentences
+            .filter((_, i) => i !== index)
+            .map((s) => s.arabicSentence.trim()),
+          3
+        ),
+      ],
+      correctArabicSent: Number(0),
+    }));
+
     try {
       const response = await fetch(`${BASE_URL}/sentence/addManySentences`, {
         method: "POST",
@@ -228,11 +257,7 @@ export default function AddSentence() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sentences: sentences.map((s) => ({
-            ...s,
-            correctArabicSent: Number(s.correctArabicSent), // Convert before sending
-            correct: Number(s.correct), // Convert before sending
-          })),
+          sentences: newSentences,
         }),
       });
 
@@ -274,82 +299,101 @@ export default function AddSentence() {
         Add 6 sentences then Submit
       </p>
       <Form className="p-3 border rounded shadow-sm bg-light">
+        <Form.Label>Sentence 1</Form.Label>
         <Row>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Sentence 1</Form.Label>
-              <Form.Control
-                type="text"
-                value={sent1}
-                onChange={(e) => setSent1(e.target.value)}
-              />
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Sentence 2</Form.Label>
-              <Form.Control
-                type="text"
-                value={sent2}
-                onChange={(e) => setSent2(e.target.value)}
-              />
-            </Form.Group>
+          <Col md={10}>
+            <Form.Control
+              type="text"
+              value={sent1}
+              onChange={(e) => setSent1(e.target.value)}
+            />
           </Col>
         </Row>
-        <h4 className="mt-4">Choices</h4>
-        {choices.map((choice, index) => (
-          <Form.Group key={index}>
-            <Form.Label>Choice {index + 1}</Form.Label>
-            <Row>
-              <Col md={10}>
-                <Form.Control
-                  type="text"
-                  value={choice}
-                  onChange={(e) => {
-                    const newChoices = [...choices];
-                    newChoices[index] = e.target.value;
-                    setChoices(newChoices);
-                  }}
-                />
-              </Col>
-              <Col md={2} className="d-flex align-items-center">
-                <Form.Check
-                  type="radio"
-                  name="correctChoice"
-                  onChange={() => setCorrectChoice(index)}
-                  checked={correctChoice === index}
-                />
-              </Col>
-            </Row>
-          </Form.Group>
-        ))}
-        <h4 className="mt-4">Arabic Sentences</h4>
-        {arabicSentences.map((sentence, index) => (
-          <Form.Group key={index}>
-            <Form.Label>Arabic Sentence {index + 1}</Form.Label>
-            <Row>
-              <Col md={10}>
-                <Form.Control
-                  type="text"
-                  value={sentence}
-                  onChange={(e) => {
-                    const newArabicSentences = [...arabicSentences];
-                    newArabicSentences[index] = e.target.value;
-                    setArabicSentences(newArabicSentences);
-                  }}
-                />
-              </Col>
-              <Col md={2} className="d-flex align-items-center">
-                <Form.Check
-                  type="radio"
-                  name="correctArabicSent"
-                  onChange={() => setCorrectArabicSent(Number(index))}
-                  checked={correctArabicSent === index}
-                />
-              </Col>
-            </Row>
-          </Form.Group>
-        ))}
+        <Form.Label className="text-success fw-semibold">
+          Correct Choice
+        </Form.Label>
+        <Row>
+          <Col md={10}>
+            <Form.Control
+              className="border-3 border-success"
+              type="text"
+              value={choice}
+              onChange={(e) => {
+                setChoice(e.target.value);
+              }}
+            />
+          </Col>
+        </Row>
+        <Form.Label>Sentence 2</Form.Label>
+        <Row>
+          <Col md={10}>
+            <Form.Control
+              type="text"
+              value={sent2}
+              onChange={(e) => setSent2(e.target.value)}
+            />
+          </Col>
+        </Row>
+        <hr />
+        <Form.Label className="text-danger fw-semibold">
+          Wrong Choices
+        </Form.Label>
+        <Row className="row-gap-2">
+          <Col md={4}>
+            <Form.Control
+              className="border-2 border-danger"
+              placeholder="Wrong Choice 1"
+              type="text"
+              value={wrongChoices[0]}
+              onChange={(e) => {
+                const newWrongChoices = [...wrongChoices];
+                newWrongChoices[0] = e.target.value;
+                setWrongChoices(newWrongChoices);
+              }}
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Control
+              className="border-2 border-danger"
+              placeholder="Wrong Choice 2"
+              type="text"
+              value={wrongChoices[1]}
+              onChange={(e) => {
+                const newWrongChoices = [...wrongChoices];
+                newWrongChoices[1] = e.target.value;
+                setWrongChoices(newWrongChoices);
+              }}
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Control
+              className="border-2 border-danger"
+              placeholder="Wrong Choice 3"
+              type="text"
+              value={wrongChoices[2]}
+              onChange={(e) => {
+                const newWrongChoices = [...wrongChoices];
+                newWrongChoices[2] = e.target.value;
+                setWrongChoices(newWrongChoices);
+              }}
+            />
+          </Col>
+        </Row>
+        <hr />
+        <Form.Label>Sentence in arabic</Form.Label>
+        <Row>
+          <Col md={10}>
+            <Form.Control
+              type="text"
+              value={arabicSentence}
+              onChange={(e) => {
+                setArabicSentence(e.target.value);
+              }}
+            />
+          </Col>
+        </Row>
+        {/* </Form.Group> */}
+        {/* ))} */}
         <Row className="justify-content-center mt-4">
           <Col xs={6} className="d-flex justify-content-center">
             <Button
@@ -380,8 +424,7 @@ export default function AddSentence() {
               >
                 <Card.Body>
                   <Card.Title>
-                    {sentence.sent1}{" "}
-                    {sentences[index].choices[sentences[index].correct]}{" "}
+                    {sentence.sent1} {sentences[index].choices[0]}{" "}
                     {sentence.sent2}
                   </Card.Title>
                 </Card.Body>
