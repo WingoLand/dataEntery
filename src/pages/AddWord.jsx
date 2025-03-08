@@ -11,15 +11,15 @@ export default function AddWord() {
   const [arabicWord, setArabicWord] = useState("");
   const [arabicWords, setArabicWords] = useState([]);
   const [pic, setPic] = useState(null);
-  const [choices, setChoices] = useState(["", "", ""]);
-  const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
+  // const [choices, setChoices] = useState(["", "", ""]);
+  // const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
   const [category, setCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [words, setWords] = useState([]);
   const [Pics, setPics] = useState([]);
-  const [allChoices, setAllChoices] = useState([]);
-  const [allArabicChoices, setAllArabicChoices] = useState([]);
+  // const [allChoices, setAllChoices] = useState([]);
+  // const [allArabicChoices, setAllArabicChoices] = useState([]);
   const [genCategory, setGenCategory] = useState("");
 
   const fetchCategories = async () => {
@@ -53,7 +53,8 @@ export default function AddWord() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (words.length !== 6) {
+
+    if (!Array.isArray(words) || words.length !== 6) {
       alert("You must add exactly 6 words before submitting.");
       return;
     }
@@ -65,17 +66,37 @@ export default function AddWord() {
         ? newCategory.trim().toLowerCase()
         : category.trim().toLowerCase()
     );
-    const newWords = words.map((word, index) => ({
-      word: word.trim().toLowerCase(),
-      wordInArabic: arabicWords[index].trim().toLowerCase(),
-      choices: randomizeChoices(words.filter((_, i) => i !== index)).map(
-        (choice) => choice.trim().toLowerCase(),
+
+    const newWords = words.map((word, index) => {
+      const randomChoices = randomizeChoices(
+        words.filter((_, i) => i !== index),
         3
-      ),
-      arabicChoices: randomizeChoices(
-        arabicWords.filter((_, i) => i !== index)
-      ).map((choice) => choice.trim().toLowerCase(), 3),
-    }));
+      );
+      if (!Array.isArray(randomChoices)) {
+        console.error(
+          "randomizeChoices returned an invalid value:",
+          randomChoices
+        );
+      }
+
+      const randomizeArabicChoices = randomizeChoices(
+        arabicWords.filter((_, i) => i !== index),
+        3
+      );
+      if (!Array.isArray(randomizeArabicChoices)) {
+        console.error(
+          "randomizeChoices returned an invalid value:",
+          randomizeArabicChoices
+        );
+      }
+
+      return {
+        word: word.trim().toLowerCase(),
+        wordInArabic: arabicWords[index].trim().toLowerCase(),
+        choices: randomChoices,
+        arabicChoices: randomizeArabicChoices,
+      };
+    });
     formData.append("words", JSON.stringify(newWords));
     Pics.forEach((pic) => formData.append("pics", pic));
 
@@ -90,8 +111,8 @@ export default function AddWord() {
         setWords([]);
         setArabicWords([]);
         setPics([]);
-        setAllChoices([]);
-        setAllArabicChoices([]);
+        // setAllChoices([]);
+        // setAllArabicChoices([]);
         setCategory("");
         setNewCategory("");
       } else {
@@ -148,8 +169,7 @@ export default function AddWord() {
 
     if (
       !word ||
-      !arabicWord ||
-      !pic
+      !arabicWord
       // ||choices.some((choice) => !choice) ||
       // arabicChoices.some((choice) => !choice)
     ) {
