@@ -131,28 +131,28 @@ export default function EditWords() {
     }
   };
 
-  // const handleDelete = async () => {
-  //   if (!selectedWord) return;
-  //   if (!window.confirm("Are you sure you want to delete this word?")) return;
+  const handleDelete = async () => {
+    if (!selectedWord) return;
+    if (!window.confirm("Are you sure you want to delete this word?")) return;
 
-  //   try {
-  //     const response = await fetch(
-  //       `${BASE_URL}/word/deleteWord/${selectedWord.id}`,
-  //       {
-  //         method: "DELETE",
-  //       }
-  //     );
+    try {
+      const response = await fetch(
+        `${BASE_URL}/word/deleteWord/${selectedWord.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-  //     const data = await response.json();
-  //     if (!response.ok) throw new Error(data.message || "Delete failed");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Delete failed");
 
-  //     alert("Word deleted successfully!");
-  //     setShowModal(false);
-  //     handelFetchWords(chosenCategory);
-  //   } catch (error) {
-  //     alert(error.message);
-  //   }
-  // };
+      alert("Word deleted successfully!");
+      setShowModal(false);
+      handelFetchWords(chosenCategory, page);
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   // Update word details on the backend
   const handleUpdate = async () => {
@@ -221,7 +221,7 @@ export default function EditWords() {
         <Spinner animation="border" className="mt-3 h-50 w-50" />
       ) : error ? (
         <Alert variant="danger">{error}</Alert>
-      ) : !categories ? (
+      ) : !categories || categories.length === 0 ? (
         <Alert variant="info">No categories available.</Alert>
       ) : chosenCategory && words?.length === 0 ? (
         <Alert variant="info">No words available.</Alert>
