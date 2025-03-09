@@ -12,12 +12,19 @@ import {
   Image,
 } from "react-bootstrap";
 import config from "../../config";
+import {
+  fetchCategories,
+  fetchWords,
+  getWordsLevels,
+} from "../requests/wordsReq";
 
 const { BASE_URL } = config;
 
 export default function EditWords() {
   const [words, setWords] = useState([]);
 
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -51,43 +58,26 @@ export default function EditWords() {
   }, [searchTerm, words]); // Re-run filtering when search term or words list changes
 
   // Fetch all words from the backend
-  const fetchWords = async (category) => {
-    setChosenCategory(category);
+  const handelFetchWords = async (category, page) => {
     setLoading(true);
-    try {
-      const response = await fetch(`${BASE_URL}/word/category`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ category }),
-      });
-      if (!response.ok) throw new Error("Failed to load words.");
-      const data = await response.json();
-
-      setWords(data);
-    } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
-    } finally {
+    await fetchWords(category, page).then((data) => {
+      setWords(data.wordsArray);
+      setPageCount(data.counter);
+      setChosenCategory(category);
       setLoading(false);
-    }
+    });
   };
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/word/categories`);
-      if (!response.ok) throw new Error("Failed to load categories.");
-      const data = await response.json();
+  const getCategories = async () => {
+    setLoading(true);
+    await fetchCategories().then((data) => {
       setCategories(data);
-    } catch (err) {
-      setError(err.message || "An unexpected error occurred.");
-    } finally {
       setLoading(false);
-    }
+    });
   };
 
   useEffect(() => {
-    fetchCategories();
+    getCategories();
   }, []);
 
   // Handle opening the modal and pre-filling form fields
@@ -141,28 +131,28 @@ export default function EditWords() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedWord) return;
-    if (!window.confirm("Are you sure you want to delete this word?")) return;
+  // const handleDelete = async () => {
+  //   if (!selectedWord) return;
+  //   if (!window.confirm("Are you sure you want to delete this word?")) return;
 
-    try {
-      const response = await fetch(
-        `${BASE_URL}/word/deleteWord/${selectedWord.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+  //   try {
+  //     const response = await fetch(
+  //       `${BASE_URL}/word/deleteWord/${selectedWord.id}`,
+  //       {
+  //         method: "DELETE",
+  //       }
+  //     );
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Delete failed");
+  //     const data = await response.json();
+  //     if (!response.ok) throw new Error(data.message || "Delete failed");
 
-      alert("Word deleted successfully!");
-      setShowModal(false);
-      fetchWords(chosenCategory);
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  //     alert("Word deleted successfully!");
+  //     setShowModal(false);
+  //     handelFetchWords(chosenCategory);
+  //   } catch (error) {
+  //     alert(error.message);
+  //   }
+  // };
 
   // Update word details on the backend
   const handleUpdate = async () => {
@@ -209,7 +199,7 @@ export default function EditWords() {
       alert("Word updated successfully!");
       setShowModal(false);
       setLoading(true);
-      fetchWords(); // Reload data
+      handelFetchWords(category, page); // Reload data
     } catch (err) {
       alert(err.message || "An unexpected error occurred.");
     }
@@ -228,12 +218,12 @@ export default function EditWords() {
         />
       </Form>
       {loading ? (
-        <Spinner animation="border" className="mt-3" />
+        <Spinner animation="border" className="mt-3 h-50 w-50" />
       ) : error ? (
         <Alert variant="danger">{error}</Alert>
       ) : !categories ? (
         <Alert variant="info">No categories available.</Alert>
-      ) : chosenCategory && words.length === 0 ? (
+      ) : chosenCategory && words?.length === 0 ? (
         <Alert variant="info">No words available.</Alert>
       ) : (
         <Row className="justify-content-center g-3">
@@ -248,7 +238,10 @@ export default function EditWords() {
                   <i
                     className="bi bi-x-circle"
                     style={{ cursor: "pointer" }}
-                    onClick={() => setChosenCategory("")}
+                    onClick={() => {
+                      setChosenCategory("");
+                      setPage(1);
+                    }}
                   ></i>
                 </span>
               </>
@@ -266,7 +259,7 @@ export default function EditWords() {
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.transform = "scale(1)")
                   }
-                  onClick={() => fetchWords(category)}
+                  onClick={() => handelFetchWords(category)}
                 >
                   <Card.Body>
                     <h4 className="fw-bold text-dark">{category}</h4>
@@ -276,7 +269,7 @@ export default function EditWords() {
             ))}
           {chosenCategory &&
             words
-              .filter((wordItem) =>
+              ?.filter((wordItem) =>
                 wordItem.word.toLowerCase().includes(searchTerm)
               )
               .map((wordItem) => (
@@ -299,6 +292,55 @@ export default function EditWords() {
                 </Col>
               ))}
         </Row>
+      )}
+      {chosenCategory && (
+        <div
+          className={`d-flex justify-content-center align-items-center mt-4`}
+        >
+          <Button
+            variant={page === 1 ? "secondary" : "info"}
+            onClick={() => {
+              page > 1 && setPage((prev) => prev - 1);
+              handelFetchWords(chosenCategory, page - 1);
+            }}
+            disabled={page === 1}
+          >
+            {"<"}
+          </Button>
+          <input
+            className="form-control ms-3 w-25"
+            type="number"
+            value={page}
+            onChange={(e) => {
+              setPage(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (e.target.value > pageCount) {
+                  setPage(pageCount);
+                  handelFetchWords(chosenCategory, pageCount);
+                } else if (e.target.value < 1) {
+                  setPage(1);
+                  handelFetchWords(chosenCategory, 1);
+                } else {
+                  setPage(e.target.value);
+                  handelFetchWords(chosenCategory, e.target.value);
+                }
+              }
+            }}
+          />
+          <span className="me-3 fs-6">of {pageCount}</span>
+          <Button
+            variant={page >= pageCount ? "secondary" : "info"}
+            onClick={() => {
+              setPage((prev) => prev + 1);
+              handelFetchWords(chosenCategory, page + 1);
+            }}
+            disabled={page >= pageCount}
+          >
+            {">"}
+          </Button>
+        </div>
       )}
 
       {/* Edit Modal */}

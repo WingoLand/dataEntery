@@ -322,11 +322,11 @@ export default function AddWord() {
       {words.length > 0 && (
         <div className="mt-4 overflow-auto" style={{ whiteSpace: "nowrap" }}>
           <h5 className="mb-2">Added Words:</h5>
-          <div className="d-flex">
+          <div className="d-flex flex-wrap gap-2">
             {words.map((word, index) => (
               <Card
                 key={index}
-                className="me-3 p-2 border rounded shadow-sm "
+                className="me-3 p-2 border rounded shadow-sm"
                 style={{ width: "150px" }}
               >
                 <Card.Body>
