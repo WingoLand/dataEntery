@@ -62,6 +62,8 @@ export default function EditWords() {
     setLoading(true);
     await fetchWords(category, page).then((data) => {
       setWords(data.wordsArray);
+      console.log(data.wordsArray[0].pic);
+
       setPageCount(data.counter);
       setChosenCategory(category);
       setLoading(false);
@@ -422,14 +424,15 @@ export default function EditWords() {
               <Form.Group className="mt-3">
                 <Form.Label className="fw-semibold">Word Picture</Form.Label>
                 <div className="d-flex align-items-center gap-3 flex-wrap">
-                  {tempWordPic || wordPic.contentType ? (
+                  {tempWordPic || wordPic ? (
                     <Image
                       src={
                         tempWordPic
                           ? tempWordPic
                           : wordPic
-                          ? `data:${wordPic.contentType};base64,${wordPic.data}`
-                          : "https://via.placeholder.com/100?text=No+Image"
+                          ? { wordPic }
+                          : // `data:${wordPic.contentType};base64,${wordPic.data}`
+                            "https://via.placeholder.com/100?text=No+Image"
                       }
                       className="img-thumbnail rounded-circle shadow-sm border border-secondary"
                       style={{
