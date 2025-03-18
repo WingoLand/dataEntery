@@ -110,21 +110,9 @@ export default function EditAlphabet() {
     setWord(letter.word || "");
 
     // Load existing images from database if available
-    setPreviewWordPic(
-      letter.wordPic
-        ? `data:${letter.wordPic.contentType};base64,${letter.wordPic.data}`
-        : null
-    );
-    setPreviewCapPic(
-      letter.capPic
-        ? `data:${letter.capPic.contentType};base64,${letter.capPic.data}`
-        : null
-    );
-    setPreviewSmallPic(
-      letter.smallPic
-        ? `data:${letter.smallPic.contentType};base64,${letter.smallPic.data}`
-        : null
-    );
+    setPreviewWordPic(letter.wordPic || null);
+    setPreviewCapPic(letter.capPic || null);
+    setPreviewSmallPic(letter.smallPic || null);
 
     setWordPic(null);
     setCapPic(null);

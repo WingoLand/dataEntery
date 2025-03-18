@@ -62,7 +62,6 @@ export default function EditWords() {
     setLoading(true);
     await fetchWords(category, page).then((data) => {
       setWords(data.wordsArray);
-      console.log(data.wordsArray[0].pic);
 
       setPageCount(data.counter);
       setChosenCategory(category);
@@ -426,14 +425,7 @@ export default function EditWords() {
                 <div className="d-flex align-items-center gap-3 flex-wrap">
                   {tempWordPic || wordPic ? (
                     <Image
-                      src={
-                        tempWordPic
-                          ? tempWordPic
-                          : wordPic
-                          ? { wordPic }
-                          : // `data:${wordPic.contentType};base64,${wordPic.data}`
-                            "https://via.placeholder.com/100?text=No+Image"
-                      }
+                      src={tempWordPic ? tempWordPic : wordPic}
                       className="img-thumbnail rounded-circle shadow-sm border border-secondary"
                       style={{
                         width: "100px",
