@@ -11,6 +11,10 @@ import {
   Image,
   Card,
 } from "react-bootstrap";
+import {
+  getAlphabetCash,
+  setAlphabetCash,
+} from "../cashStorage/alphabetCashStorage";
 
 const { BASE_URL } = config;
 
@@ -39,12 +43,49 @@ export default function EditAlphabet() {
       if (!response.ok) {
         setMessage(data.message);
       } else {
-        setAlphabet(data);
+        const newData = await Promise.all(
+          data.map(async (item) => {
+            const cashData = getAlphabetCash(item.small);
+            if (cashData) {
+              return cashData;
+            }
+
+            const newItem = {
+              ...item,
+              wordPic: (await convertImageToBase64(item.wordPic)) || null,
+              capPic: (await convertImageToBase64(item.capPic)) || null,
+              smallPic: (await convertImageToBase64(item.smallPic)) || null,
+            };
+
+            setAlphabetCash(item.small, newItem);
+
+            return newItem;
+          })
+        );
+
+        setAlphabet(newData);
       }
     } catch (error) {
-      setMessage("Failed to load data. Please try again.");
+      setMessage("Failed to load data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const convertImageToBase64 = async (imageUrl) => {
+    try {
+      const response = await fetch(imageUrl); // Fetch the image
+      const blob = await response.blob(); // Convert response to Blob
+
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result); // Get Base64 string
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error converting image to Base64:", error);
+      return null;
     }
   };
 
@@ -74,6 +115,13 @@ export default function EditAlphabet() {
       if (!response.ok) throw new Error(data.message || "Update failed");
 
       alert("Letter updated successfully!");
+      setAlphabetCash(selectedLetter.small, {
+        ...selectedLetter,
+        word,
+        wordPic: previewWordPic,
+        capPic: previewCapPic,
+        smallPic: previewSmallPic,
+      });
       setShowModal(false);
       fetchAlphabet();
     } catch (error) {

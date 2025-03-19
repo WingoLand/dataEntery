@@ -17,6 +17,7 @@ import {
   fetchWords,
   getWordsLevels,
 } from "../requests/wordsReq";
+import { getWordsCash, setWordsCash } from "../cashStorage/wordsCashStorage";
 
 const { BASE_URL } = config;
 
@@ -58,15 +59,91 @@ export default function EditWords() {
   }, [searchTerm, words]); // Re-run filtering when search term or words list changes
 
   // Fetch all words from the backend
+  // const handelFetchWords = async (category, page) => {
+  //   setLoading(true);
+
+  //   await fetchWords(category, page).then((data) => {
+  //     const newWords = data.wordsArray?.map((word) => {
+  //       let newData = getWordsCash(word.id);
+  //       if (newData) {
+  //         return newData;
+  //       }
+
+  //       // Convert Blob to Base64
+  //       let base64data;
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(new Blob(word.pic));
+  //       reader.onloadend = () => {
+  //         base64data = reader.result;
+  //       };
+
+  //       setWordsCash(word.id, {
+  //         ...word,
+  //         pic: base64data,
+  //       });
+
+  //       return {
+  //         ...word,
+  //         pic: base64data,
+  //       };
+  //     });
+
+  //     setWords(newWords);
+
+  //     setPageCount(data.counter);
+  //     setChosenCategory(category);
+  //     setLoading(false);
+  //   });
+  // };
   const handelFetchWords = async (category, page) => {
     setLoading(true);
-    await fetchWords(category, page).then((data) => {
-      setWords(data.wordsArray);
 
+    try {
+      const data = await fetchWords(category, page);
+
+      const newWords = await Promise.all(
+        data.wordsArray.map(async (word) => {
+          let cachedData = getWordsCash(word.id);
+          if (cachedData) {
+            return cachedData;
+          }
+
+          // Convert image URL to Base64
+          const base64data = await convertImageToBase64(word.pic);
+
+          const newWord = { ...word, pic: base64data };
+
+          setWordsCash(word.id, newWord); // Store in cache
+
+          return newWord;
+        })
+      );
+
+      setWords(newWords);
       setPageCount(data.counter);
       setChosenCategory(category);
+    } catch (error) {
+      console.error("Error fetching words:", error);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
+
+  const convertImageToBase64 = async (imageUrl) => {
+    try {
+      const response = await fetch(imageUrl); // Fetch the image
+      const blob = await response.blob(); // Convert response to Blob
+
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result); // Get Base64 string
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error converting image to Base64:", error);
+      return null;
+    }
   };
 
   const getCategories = async () => {
@@ -198,6 +275,15 @@ export default function EditWords() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Update failed");
       alert("Word updated successfully!");
+      setWordsCash(selectedWord.id, {
+        ...selectedWord,
+        category,
+        word,
+        wordInArabic: arabicWord,
+        choices,
+        arabicChoices,
+        pic: tempWordPic || wordPic,
+      });
       setShowModal(false);
       setLoading(true);
       handelFetchWords(category, page); // Reload data
