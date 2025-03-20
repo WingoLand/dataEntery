@@ -5,6 +5,7 @@ import HomeButton from "../components/HomeButton";
 import EditAlphabet from "./EditAlphabet";
 import EditWords from "./EditWords";
 import EditSentence from "./EditSentences";
+import EditVerbs from "./EditVerbs";
 
 export default function Edit() {
   const [page, setPage] = useState("editAlphabet");
@@ -28,6 +29,12 @@ export default function Edit() {
           Edit Words
         </Button>
         <Button
+          variant={page === "editVerbs" ? "warning" : "outline-warning"}
+          onClick={() => setPage("editVerbs")}
+        >
+          Edit Verbs
+        </Button>
+        <Button
           variant={page === "editSentence" ? "success" : "outline-success"}
           onClick={() => setPage("editSentence")}
         >
@@ -39,6 +46,7 @@ export default function Edit() {
       <div className="mt-4">
         {page === "editAlphabet" && <EditAlphabet />}
         {page === "editWords" && <EditWords />}
+        {page === "editVerbs" && <EditVerbs />}
         {page === "editSentence" && <EditSentence />}
       </div>
     </Container>

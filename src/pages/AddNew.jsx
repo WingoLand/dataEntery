@@ -6,6 +6,7 @@ import AddAlphabet from "./AddAlphabet";
 import AddWord from "./AddWord";
 import AddSentence from "./AddSentence";
 import config from "../../config";
+import AddVerb from "./AddVerb";
 
 const { BASE_URL } = config;
 
@@ -49,6 +50,12 @@ export default function AddNew() {
           Add Words
         </Button>
         <Button
+          variant={page === "addVerbs" ? "warning" : "outline-warning"}
+          onClick={() => setPage("addVerbs")}
+        >
+          Add Verbs
+        </Button>
+        <Button
           variant={page === "addSentence" ? "success" : "outline-success"}
           onClick={() => setPage("addSentence")}
         >
@@ -60,6 +67,7 @@ export default function AddNew() {
       <div className="mt-4">
         {page === "addAlphabet" && <AddAlphabet />}
         {page === "addWords" && <AddWord />}
+        {page === "addVerbs" && <AddVerb />}
         {page === "addSentence" && <AddSentence />}
       </div>
 
@@ -67,7 +75,7 @@ export default function AddNew() {
       {/* <Button
         variant="danger"
         size="lg"
-        className="mt-4 shadow"
+        className="shadow mt-4"
         onClick={handleDeleteDB}
       >
         🗑 Delete Database
