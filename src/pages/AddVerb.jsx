@@ -6,6 +6,7 @@ import randomizeChoices from "../modules/randomizeChoices.js";
 const { BASE_URL } = config;
 
 export default function AddVerb() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [dbWords, setDbWords] = useState([]);
   const [word, setWord] = useState("");
   const [arabicWord, setArabicWord] = useState("");
@@ -30,10 +31,12 @@ export default function AddVerb() {
   }, []);
 
   const handleSubmit = async (e) => {
+    setIsSubmitting(true);
     e.preventDefault();
 
     if (!Array.isArray(words) || words.length !== 6) {
       alert("You must add exactly 6 words before submitting.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -87,6 +90,8 @@ export default function AddVerb() {
       }
     } catch (error) {
       console.log("Error uploading words:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -160,8 +165,13 @@ export default function AddVerb() {
             xs={6}
             className="d-flex align-items-center justify-content-center"
           >
-            <Button variant="success" type="submit" className="w-100">
-              Submit
+            <Button
+              variant={!isSubmitting ? "success" : "secondary"}
+              type="submit"
+              disabled={isSubmitting}
+              className="w-100"
+            >
+              {!isSubmitting ? "Submit" : "wait..."}
             </Button>
           </Col>
         </Row>

@@ -6,6 +6,7 @@ import randomizeChoices from "../modules/randomizeChoices.js";
 const { BASE_URL } = config;
 
 export default function AddWord() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [dbWords, setDbWords] = useState([]);
   const [word, setWord] = useState("");
   const [arabicWord, setArabicWord] = useState("");
@@ -52,10 +53,12 @@ export default function AddWord() {
   }, []);
 
   const handleSubmit = async (e) => {
+    setIsSubmitting(true);
     e.preventDefault();
 
     if (!Array.isArray(words) || words.length !== 6) {
       alert("You must add exactly 6 words before submitting.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -121,6 +124,8 @@ export default function AddWord() {
       }
     } catch (error) {
       console.log("Error uploading words:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -266,35 +271,7 @@ export default function AddWord() {
             onChange={(e) => setPic(e.target.files[0])}
           />
         </Form.Group>
-        {/* {[...Array(3)].map((_, index) => (
-          <Form.Group key={index} className="mb-3">
-            <Form.Label>English Choice {index + 1}</Form.Label>
-            <Form.Control
-              type="text"
-              value={choices[index] || ""}
-              onChange={(e) => {
-                const newChoices = [...choices];
-                newChoices[index] = e.target.value;
-                setChoices(newChoices);
-              }}
-            />
-          </Form.Group>
-        ))} */}
-        {/* <hr />
-        {[...Array(3)].map((_, index) => (
-          <Form.Group key={index} className="mb-3">
-            <Form.Label>Arabic Choice {index + 1}</Form.Label>
-            <Form.Control
-              type="text"
-              value={arabicChoices[index] || ""}
-              onChange={(e) => {
-                const newArabicChoices = [...arabicChoices];
-                newArabicChoices[index] = e.target.value;
-                setArabicChoices(newArabicChoices);
-              }}
-            />
-          </Form.Group>
-        ))} */}
+
         <Row className="w-100 justify-content-space-between">
           <Col
             xs={6}
@@ -313,8 +290,13 @@ export default function AddWord() {
             xs={6}
             className="d-flex align-items-center justify-content-center"
           >
-            <Button variant="success" type="submit" className="w-100">
-              Submit
+            <Button
+              variant={!isSubmitting ? "success" : "secondary"}
+              type="submit"
+              disabled={isSubmitting}
+              className="w-100"
+            >
+              {!isSubmitting ? "Submit" : "wait..."}
             </Button>
           </Col>
         </Row>
