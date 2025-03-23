@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
+import {
+  Container,
+  Form,
+  Button,
+  Row,
+  Col,
+  Card,
+  FormControl,
+} from "react-bootstrap";
 import config from "../../config";
 import randomizeChoices from "../modules/randomizeChoices.js";
 
@@ -11,15 +19,16 @@ export default function AddVerb() {
   const [word, setWord] = useState("");
   const [arabicWord, setArabicWord] = useState("");
   const [arabicWords, setArabicWords] = useState([]);
-  // const [choices, setChoices] = useState(["", "", ""]);
-  // const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
+  const [counter, setCounter] = useState(6);
   const [category, setCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [words, setWords] = useState([]);
-  // const [allChoices, setAllChoices] = useState([]);
-  // const [allArabicChoices, setAllArabicChoices] = useState([]);
   const [genCategory, setGenCategory] = useState("");
+  const [choices, setChoices] = useState([]);
+  const [arabicChoices, setArabicChoices] = useState([]);
+  const [allChoices, setAllChoices] = useState([]);
+  const [allArabicChoices, setAllArabicChoices] = useState([]);
 
   const fetchCategories = async () => {
     try {
@@ -54,41 +63,50 @@ export default function AddVerb() {
     setIsSubmitting(true);
     e.preventDefault();
 
-    if (!Array.isArray(words) || words.length !== 6) {
-      alert("You must add exactly 6 words before submitting.");
+    if (!Array.isArray(words) || words.length != counter) {
+      alert(`You must add exactly ${counter} words before submitting.`);
       setIsSubmitting(false);
       return;
     }
 
     const newWords = words.map((word, index) => {
-      const randomChoices = randomizeChoices(
-        words.filter((_, i) => i !== index),
-        3
-      );
-      if (!Array.isArray(randomChoices)) {
-        console.error(
-          "randomizeChoices returned an invalid value:",
-          randomChoices
+      if (counter >= 4) {
+        const randomChoices = randomizeChoices(
+          words.filter((_, i) => i !== index),
+          3
         );
-      }
+        if (!Array.isArray(randomChoices)) {
+          console.error(
+            "randomizeChoices returned an invalid value:",
+            randomChoices
+          );
+        }
 
-      const randomizeArabicChoices = randomizeChoices(
-        arabicWords.filter((_, i) => i !== index),
-        3
-      );
-      if (!Array.isArray(randomizeArabicChoices)) {
-        console.error(
-          "randomizeChoices returned an invalid value:",
-          randomizeArabicChoices
+        const randomizeArabicChoices = randomizeChoices(
+          arabicWords.filter((_, i) => i !== index),
+          3
         );
-      }
+        if (!Array.isArray(randomizeArabicChoices)) {
+          console.error(
+            "randomizeChoices returned an invalid value:",
+            randomizeArabicChoices
+          );
+        }
 
-      return {
-        word: word.trim().toLowerCase(),
-        wordInArabic: arabicWords[index].trim().toLowerCase(),
-        choices: randomChoices,
-        arabicChoices: randomizeArabicChoices,
-      };
+        return {
+          word: word.trim().toLowerCase(),
+          wordInArabic: arabicWords[index].trim().toLowerCase(),
+          choices: randomChoices,
+          arabicChoices: randomizeArabicChoices,
+        };
+      } else {
+        return {
+          word: word.trim().toLowerCase(),
+          wordInArabic: arabicWords[index].trim().toLowerCase(),
+          choices: allChoices[index],
+          arabicChoices: allArabicChoices[index],
+        };
+      }
     });
 
     const data = {
@@ -113,6 +131,10 @@ export default function AddVerb() {
         setArabicWords([]);
         setCategory("");
         setNewCategory("");
+        setChoices(["", "", ""]);
+        setArabicChoices(["", "", ""]);
+        setAllChoices([]);
+        setAllArabicChoices([]);
       } else {
         const data = await response.json();
         alert(data.message);
@@ -165,7 +187,8 @@ export default function AddVerb() {
       alert(error.message); // Display the error message to the user
     }
 
-    if (words.length - 1 >= 5) return alert("Submit these 6 words first !");
+    if (words.length - 1 >= counter - 1)
+      return alert(`Submit these ${counter} words first !`);
 
     if (!word || !arabicWord) {
       alert("Please fill in all fields before adding.");
@@ -189,6 +212,13 @@ export default function AddVerb() {
     setWords([...words, word]);
     setArabicWords([...arabicWords, arabicWord]);
 
+    if (counter < 4) {
+      setAllChoices([...allChoices, choices]);
+      setAllArabicChoices([...allArabicChoices, arabicChoices]);
+      setChoices(["", "", ""]);
+      setArabicChoices(["", "", ""]);
+    }
+
     setArabicWord("");
     setWord("");
   };
@@ -196,9 +226,32 @@ export default function AddVerb() {
   return (
     <Container className="mt-4 mb-4">
       <h2 className="text-center mb-4">Add Verb</h2>
-      <p className="float-end me-1 text-warning fs-6 fw-semibold text-decoration-underline">
-        Add 6 Verbs of the same category then Submit
-      </p>
+      <Row className="float-end me-1 text-warning fs-6 fw-semibold w-100 my-1">
+        <Col>
+          <p className="float-end me-1 text-warning fs-6 fw-semibold text-decoration-underline">
+            Add {counter} Verbs of the same category then Submit
+          </p>
+        </Col>
+        <Col>
+          <input
+            type="number"
+            className="form-control"
+            value={counter}
+            onChange={(e) => {
+              if (words.length > 0) return alert("Submit these words first !");
+              setCounter(e.target.value);
+            }}
+            onMouseOut={(e) => {
+              if (e.target.value < 2) {
+                setCounter(2);
+                return alert("Minimum 2 words");
+              }
+              setCounter(e.target.value);
+            }}
+          />
+        </Col>
+      </Row>
+
       <Form
         onSubmit={handleSubmit}
         className="p-3 border rounded shadow-sm bg-light"
@@ -238,6 +291,47 @@ export default function AddVerb() {
             value={word}
             onChange={(e) => setWord(e.target.value)}
           />
+          {counter < 4 && (
+            <>
+              <Form.Label>wrong Choices</Form.Label>
+              <Row className="mb-2">
+                <Col>
+                  <FormControl
+                    spellCheck
+                    type="text"
+                    className="border-danger focus-ring focus-ring-danger"
+                    value={choices[0]}
+                    onChange={(e) =>
+                      setChoices((prev) => [e.target.value, prev[1], prev[2]])
+                    }
+                  />
+                </Col>
+                <Col>
+                  <FormControl
+                    spellCheck
+                    type="text"
+                    className="border-danger focus-ring focus-ring-danger"
+                    value={choices[1]}
+                    onChange={(e) =>
+                      setChoices((prev) => [prev[0], e.target.value, prev[2]])
+                    }
+                  />
+                </Col>
+                <Col>
+                  <FormControl
+                    spellCheck
+                    type="text"
+                    className="border-danger focus-ring focus-ring-danger"
+                    value={choices[2]}
+                    onChange={(e) =>
+                      setChoices((prev) => [prev[0], prev[1], e.target.value])
+                    }
+                  />
+                </Col>
+              </Row>
+            </>
+          )}
+
           <Form.Label>Meaning in Arabic</Form.Label>
           <Form.Control
             type="text"
@@ -245,6 +339,58 @@ export default function AddVerb() {
             onChange={(e) => setArabicWord(e.target.value)}
           />
         </Form.Group>
+        {counter < 4 && (
+          <>
+            <Form.Label>wrong Arabic choices</Form.Label>
+            <Row className="mb-5">
+              <Col>
+                <FormControl
+                  spellCheck
+                  type="text"
+                  className="border-danger focus-ring focus-ring-danger"
+                  value={arabicChoices[0]}
+                  onChange={(e) =>
+                    setArabicChoices((prev) => [
+                      e.target.value,
+                      prev[1],
+                      prev[2],
+                    ])
+                  }
+                />
+              </Col>
+              <Col>
+                <FormControl
+                  spellCheck
+                  type="text"
+                  className="border-danger focus-ring focus-ring-danger"
+                  value={arabicChoices[1]}
+                  onChange={(e) =>
+                    setArabicChoices((prev) => [
+                      prev[0],
+                      e.target.value,
+                      prev[2],
+                    ])
+                  }
+                />
+              </Col>
+              <Col>
+                <FormControl
+                  spellCheck
+                  type="text"
+                  className="border-danger focus-ring focus-ring-danger"
+                  value={arabicChoices[2]}
+                  onChange={(e) =>
+                    setArabicChoices((prev) => [
+                      prev[0],
+                      prev[1],
+                      e.target.value,
+                    ])
+                  }
+                />
+              </Col>
+            </Row>
+          </>
+        )}
 
         <Row className="w-100 justify-content-space-between">
           <Col
