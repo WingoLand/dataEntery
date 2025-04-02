@@ -15,7 +15,9 @@ export default function AddWord() {
   // const [choices, setChoices] = useState(["", "", ""]);
   // const [arabicChoices, setArabicChoices] = useState(["", "", ""]);
   const [category, setCategory] = useState("");
+  const [arabicCategory, setArabicCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
+  const [newArabicCategory, setNewArabicCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [words, setWords] = useState([]);
   const [Pics, setPics] = useState([]);
@@ -28,7 +30,8 @@ export default function AddWord() {
       const response = await fetch(`${BASE_URL}/word/categories`);
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        const newData = data.map((category) => category.en);
+        setCategories(newData);
       }
     } catch (error) {
       console.log("Error fetching categories:", error);
@@ -68,6 +71,10 @@ export default function AddWord() {
       newCategory
         ? newCategory.trim().toLowerCase()
         : category.trim().toLowerCase()
+    );
+    formData.append(
+      "categoryInArabic",
+      newArabicCategory ? newArabicCategory.trim() : arabicCategory.trim()
     );
 
     const newWords = words.map((word, index) => {
@@ -117,7 +124,9 @@ export default function AddWord() {
         // setAllChoices([]);
         // setAllArabicChoices([]);
         setCategory("");
+        setArabicCategory("");
         setNewCategory("");
+        setNewArabicCategory("");
       } else {
         const data = await response.json();
         alert(data.message);
@@ -174,7 +183,8 @@ export default function AddWord() {
 
     if (
       !word ||
-      !arabicWord
+      !arabicWord ||
+      (!arabicCategory && !newArabicCategory)
       // ||choices.some((choice) => !choice) ||
       // arabicChoices.some((choice) => !choice)
     ) {
@@ -227,7 +237,13 @@ export default function AddWord() {
               <Form.Label>Category</Form.Label>
               <Form.Select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setArabicCategory(
+                    dbWords.find((word) => word.category === e.target.value)
+                      ?.categoryInArabic
+                  );
+                }}
               >
                 <option value="">Choose a category</option>
                 {categories.map((category) => (
@@ -238,17 +254,33 @@ export default function AddWord() {
               </Form.Select>
             </Form.Group>
           </Col>
+        </Row>
+        <Row className="mb-3">
           <Col>
             <Form.Group>
               <Form.Label>New Category</Form.Label>
               <Form.Control
                 type="text"
+                disabled={category}
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
             </Form.Group>
           </Col>
+          {newCategory && (
+            <Col>
+              <Form.Group>
+                <Form.Label>New Category in Arabic</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={newArabicCategory}
+                  onChange={(e) => setNewArabicCategory(e.target.value)}
+                />
+              </Form.Group>
+            </Col>
+          )}
         </Row>
+        <hr />
         <Form.Group className="mb-3">
           <Form.Label>Word</Form.Label>
           <Form.Control

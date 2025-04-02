@@ -33,6 +33,7 @@ export default function EditWords() {
   const [categories, setCategories] = useState([]);
   const [chosenCategory, setChosenCategory] = useState("");
   const [category, setCategory] = useState("");
+  const [arabicCategory, setArabicCategory] = useState("");
   const [word, setWord] = useState("");
   const [arabicWord, setArabicWord] = useState("");
   const [wordPic, setWordPic] = useState(null);
@@ -122,6 +123,7 @@ export default function EditWords() {
       setWords(newWords);
       setPageCount(data.counter);
       setChosenCategory(category);
+      setArabicCategory(data.wordsArray[0].categoryInArabic);
     } catch (error) {
       console.error("Error fetching words:", error);
     } finally {
@@ -149,7 +151,8 @@ export default function EditWords() {
   const getCategories = async () => {
     setLoading(true);
     await fetchCategories().then((data) => {
-      setCategories(data);
+      const newData = data.map((category) => category.en);
+      setCategories(newData);
       setLoading(false);
     });
   };
@@ -162,6 +165,7 @@ export default function EditWords() {
   const handleEditClick = (wordItem) => {
     setSelectedWord(wordItem);
     setCategory(wordItem.category || "");
+    setArabicCategory(wordItem.categoryInArabic || "");
     setWord(wordItem.word || "");
     setArabicWord(wordItem.wordInArabic || "");
     setWordPic(wordItem.pic || null);
@@ -170,6 +174,7 @@ export default function EditWords() {
     setTempWordPic(null);
     setEditableFields({
       category: false,
+      arabicCategory: false,
       word: false,
       arabicWord: false,
       choices: Array(wordItem.choices?.length || 3).fill(false),
@@ -249,6 +254,7 @@ export default function EditWords() {
     const formData = new FormData();
     formData.append("id", selectedWord.id);
     formData.append("category", category.trim().toLowerCase());
+    formData.append("categoryInArabic", arabicCategory.trim());
     formData.append("word", word.trim().toLowerCase());
     formData.append("wordInArabic", arabicWord.trim());
     choices.forEach((choice) => {
@@ -278,6 +284,7 @@ export default function EditWords() {
       setWordsCash(selectedWord.id, {
         ...selectedWord,
         category,
+        categoryInArabic: arabicCategory,
         word,
         wordInArabic: arabicWord,
         choices,
@@ -457,6 +464,30 @@ export default function EditWords() {
                     }`}
                     style={{ cursor: "pointer" }}
                     onClick={() => toggleEditable("category")}
+                  ></i> */}
+                </div>
+              </Form.Group>
+
+              <Form.Group>
+                <Form.Label className="fw-semibold">
+                  Category in Arabic
+                </Form.Label>
+                <div className="d-flex align-items-center">
+                  <Form.Control
+                    type="text"
+                    disabled
+                    value={arabicCategory}
+                    onChange={(e) => setArabicCategory(e.target.value)}
+                    readOnly={!editableFields.category}
+                  />
+                  {/* <i
+                    className={`ms-2 bi ${
+                      editableFields.arabicCategory
+                        ? "bi-check-circle-fill text-success"
+                        : "bi-pencil-square text-primary"
+                    }`}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => toggleEditable("arabicCategory")}
                   ></i> */}
                 </div>
               </Form.Group>

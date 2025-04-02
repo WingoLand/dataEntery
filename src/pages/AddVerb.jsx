@@ -21,7 +21,9 @@ export default function AddVerb() {
   const [arabicWords, setArabicWords] = useState([]);
   const [counter, setCounter] = useState(6);
   const [category, setCategory] = useState("");
+  const [arabicCategory, setArabicCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
+  const [newArabicCategory, setNewArabicCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [words, setWords] = useState([]);
   const [genCategory, setGenCategory] = useState("");
@@ -35,7 +37,8 @@ export default function AddVerb() {
       const response = await fetch(`${BASE_URL}/verb/categories`);
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        const newData = data.map((category) => category.en);
+        setCategories(newData);
       }
     } catch (error) {
       console.log("Error fetching categories:", error);
@@ -109,10 +112,13 @@ export default function AddVerb() {
       }
     });
 
-    const data = {
+    let data = {
       category: newCategory
         ? newCategory.trim().toLowerCase()
         : category.trim().toLowerCase(),
+      categoryInArabic: newArabicCategory
+        ? newArabicCategory.trim()
+        : arabicCategory.trim(),
       words: newWords,
     };
 
@@ -130,7 +136,9 @@ export default function AddVerb() {
         setWords([]);
         setArabicWords([]);
         setCategory("");
+        setArabicCategory("");
         setNewCategory("");
+        setNewArabicCategory("");
         setChoices(["", "", ""]);
         setArabicChoices(["", "", ""]);
         setAllChoices([]);
@@ -190,7 +198,7 @@ export default function AddVerb() {
     if (words.length - 1 >= counter - 1)
       return alert(`Submit these ${counter} words first !`);
 
-    if (!word || !arabicWord) {
+    if (!word || !arabicWord || (!arabicCategory && !newArabicCategory)) {
       alert("Please fill in all fields before adding.");
       return;
     }
@@ -262,7 +270,13 @@ export default function AddVerb() {
               <Form.Label>Category</Form.Label>
               <Form.Select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setArabicCategory(
+                    dbWords.find((word) => word.category === e.target.value)
+                      ?.categoryInArabic || ""
+                  );
+                }}
               >
                 <option value="">Choose a category</option>
                 {categories.map((category) => (
@@ -273,17 +287,33 @@ export default function AddVerb() {
               </Form.Select>
             </Form.Group>
           </Col>
+        </Row>
+        <Row className="mb-3">
           <Col>
             <Form.Group>
               <Form.Label>New Category</Form.Label>
               <Form.Control
                 type="text"
+                disabled={category}
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
             </Form.Group>
           </Col>
+          {newCategory && (
+            <Col>
+              <Form.Group>
+                <Form.Label>New Category in Arabic</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={newArabicCategory}
+                  onChange={(e) => setNewArabicCategory(e.target.value)}
+                />
+              </Form.Group>
+            </Col>
+          )}
         </Row>
+        <hr />
         <Form.Group className="mb-3">
           <Form.Label>Word</Form.Label>
           <Form.Control
