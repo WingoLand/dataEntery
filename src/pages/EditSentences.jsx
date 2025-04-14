@@ -146,7 +146,9 @@ export default function EditSentences() {
                 >
                   <Card.Body>
                     <h4 className="fw-bold text-dark">
-                      {s.sent1 + " " + s.choices[s.correct] + " " + s.sent2}
+                      {s.type === "blank"
+                        ? s.sent1 + " " + s.choices[s.correct] + " " + s.sent2
+                        : s.sent1 + "/" + s.choices[s.correct]}
                     </h4>
                   </Card.Body>
                 </Card>
@@ -162,6 +164,12 @@ export default function EditSentences() {
           <Modal.Body>
             <Form>
               <Form.Group>
+                <Form.Label>Type</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={selectedSentence.type}
+                  disabled
+                />
                 <Form.Label>Sentence 1</Form.Label>
                 <Form.Control
                   type="text"
