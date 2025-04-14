@@ -11,6 +11,8 @@ import {
 } from "react-bootstrap";
 import config from "../../config";
 import randomizeChoices from "../modules/randomizeChoices";
+import { getCategories } from "../requests/sentencesReq";
+import validateCategory from "../modules/validateCategory";
 
 const { BASE_URL } = config;
 
@@ -24,7 +26,27 @@ export default function AddSentence() {
   const [arabicSentence, setArabicSentence] = useState("");
   const [isQA, setIsQA] = useState(false);
 
+  const [categories, setCategories] = useState([]);
+  const [category, setCategory] = useState("");
+  const [arabicCategory, setArabicCategory] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [newArabicCategory, setNewArabicCategory] = useState("");
+  const [genCategory, setGenCategory] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleAdd = () => {
+    try {
+      const updatedGenCategory = validateCategory(
+        genCategory,
+        newCategory,
+        category
+      );
+      setGenCategory(updatedGenCategory); // Update the category state
+    } catch (error) {
+      alert(error.message); // Display the error message to the user
+    }
+
     // max limit of 8 sentences
     if (sentences.length >= 8) {
       alert("You must submit these 8 sentences first!");
@@ -48,15 +70,18 @@ export default function AddSentence() {
 
     if (
       dbSentences.some((sentence) =>
-        !isQA
+        (!isQA
           ? sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
             sentence.sent2.toLowerCase() === sent2.toLowerCase() &&
             sentence.choices.includes(choice.toLowerCase())
           : sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
-            sentence.choices.includes(choice.toLowerCase())
+            sentence.choices.includes(choice.toLowerCase())) &&
+        sentence.category === newCategory
+          ? newCategory
+          : category
       )
     ) {
-      alert("This sentence is already in the database!");
+      alert("This sentence is already in the database in this category !");
       return;
     }
 
@@ -65,13 +90,20 @@ export default function AddSentence() {
       !sent2 ||
       !choice ||
       !arabicSentence ||
-      wrongChoices.some((choice) => !choice)
+      wrongChoices.some((choice) => !choice) ||
+      (!arabicCategory && !newArabicCategory)
     ) {
       alert("Please fill in all fields before adding.");
       return;
     }
 
     const newSentence = {
+      category: newCategory
+        ? newCategory.trim().toLowerCase()
+        : category.trim().toLowerCase(),
+      categoryInArabic: newArabicCategory
+        ? newArabicCategory.trim()
+        : arabicCategory.trim(),
       sent1: sent1,
       sent2: sent2,
       choices: [choice, ...wrongChoices],
@@ -89,6 +121,7 @@ export default function AddSentence() {
   };
 
   const handleSubmit = async (e) => {
+    setIsSubmitting(true);
     e.preventDefault();
 
     // minimum of 4 sentences
@@ -98,6 +131,8 @@ export default function AddSentence() {
     }
 
     const newSentences = sentences.map((sentence, index) => ({
+      category: sentence.category,
+      categoryInArabic: sentence.categoryInArabic,
       sent1: sentence.sent1,
       sent2: sentence.sent2,
       choices: sentence.choices,
@@ -130,10 +165,21 @@ export default function AddSentence() {
         alert("Sentences uploaded successfully");
         setSentences([]);
         setIsQA(false);
+        setCategory("");
+        setArabicCategory("");
+        setNewCategory("");
+        setNewArabicCategory("");
+        setGenCategory("");
+        fetchSentences();
+        getCategories().then((data) => {
+          const newData = data.map((category) => category.en);
+          setCategories(newData);
+        });
       } else {
         const data = await response.json();
         alert(data.message);
       }
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error uploading sentences:", error);
     }
@@ -156,6 +202,10 @@ export default function AddSentence() {
 
   useEffect(() => {
     fetchSentences();
+    getCategories().then((data) => {
+      const newData = data.map((category) => category.en);
+      setCategories(newData);
+    });
   }, []);
 
   return (
@@ -198,6 +248,60 @@ export default function AddSentence() {
             </div>
           </Col>
         </Row>
+        {/* category */}
+        <Row className="mb-3">
+          <Col>
+            <Form.Group>
+              <Form.Label>Category</Form.Label>
+              <Form.Select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setArabicCategory(
+                    dbSentences.find(
+                      (sentence) => sentence.category === e.target.value
+                    )?.categoryInArabic
+                  );
+                }}
+                disabled={newCategory || genCategory}
+              >
+                <option value="">Choose a category</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+        <Row className="mb-3">
+          <Col>
+            <Form.Group>
+              <Form.Label>New Category</Form.Label>
+              <Form.Control
+                type="text"
+                disabled={category || genCategory}
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          {newCategory && (
+            <Col>
+              <Form.Group>
+                <Form.Label>New Category in Arabic</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={newArabicCategory}
+                  onChange={(e) => setNewArabicCategory(e.target.value)}
+                  disabled={category || genCategory}
+                />
+              </Form.Group>
+            </Col>
+          )}
+        </Row>
+        <hr />
         {/* sentence 1 | question */}
         <Form.Label>{!isQA ? "Sentence 1" : "Question"}</Form.Label>
         <Row>
@@ -330,8 +434,13 @@ export default function AddSentence() {
             </Button>
           </Col>
           <Col xs={6} className="d-flex justify-content-center">
-            <Button variant="success" onClick={handleSubmit} className="w-100">
-              Submit
+            <Button
+              variant="success"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-100"
+            >
+              {isSubmitting ? "wait..." : "Submit"}
             </Button>
           </Col>
         </Row>

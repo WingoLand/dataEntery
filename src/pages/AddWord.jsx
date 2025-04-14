@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
 import config from "../../config";
 import randomizeChoices from "../modules/randomizeChoices.js";
+import validateCategory from "../modules/validateCategory.js";
 
 const { BASE_URL } = config;
 
@@ -138,35 +139,6 @@ export default function AddWord() {
     }
   };
 
-  function validateCategory(genCategory, newCategory, category) {
-    // Helper function to normalize category values
-    const normalize = (value) => {
-      if (!value || typeof value !== "string") return ""; // Handle invalid inputs
-      return value.trim().toLowerCase();
-    };
-
-    // Normalize all category values
-    const normalizedGenCategory = normalize(genCategory);
-    const normalizedNewCategory = normalize(newCategory);
-    const normalizedCategory = normalize(category);
-
-    // Determine the effective category to use
-    const effectiveCategory = normalizedNewCategory || normalizedCategory;
-
-    // If genCategory is not set, initialize it
-    if (!normalizedGenCategory) {
-      return effectiveCategory; // Return the new category to set
-    }
-
-    // Ensure all words belong to the same category
-    if (normalizedGenCategory !== effectiveCategory) {
-      throw new Error("All words must belong to the same category.");
-    }
-
-    // Return the existing genCategory if everything is valid
-    return normalizedGenCategory;
-  }
-
   const handleAdd = () => {
     try {
       const updatedGenCategory = validateCategory(
@@ -244,6 +216,7 @@ export default function AddWord() {
                       ?.categoryInArabic
                   );
                 }}
+                disabled={genCategory || newCategory}
               >
                 <option value="">Choose a category</option>
                 {categories.map((category) => (
@@ -261,7 +234,7 @@ export default function AddWord() {
               <Form.Label>New Category</Form.Label>
               <Form.Control
                 type="text"
-                disabled={category}
+                disabled={category || genCategory}
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
@@ -275,6 +248,7 @@ export default function AddWord() {
                   type="text"
                   value={newArabicCategory}
                   onChange={(e) => setNewArabicCategory(e.target.value)}
+                  disabled={category || genCategory}
                 />
               </Form.Group>
             </Col>
