@@ -69,16 +69,15 @@ export default function AddSentence() {
     }
 
     if (
-      dbSentences.some((sentence) =>
-        (!isQA
-          ? sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
-            sentence.sent2.toLowerCase() === sent2.toLowerCase() &&
-            sentence.choices.includes(choice.toLowerCase())
-          : sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
-            sentence.choices.includes(choice.toLowerCase())) &&
-        sentence.category === newCategory
-          ? newCategory
-          : category
+      dbSentences.some(
+        (sentence) =>
+          (!isQA
+            ? sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
+              sentence.sent2.toLowerCase() === sent2.toLowerCase() &&
+              sentence.choices.includes(choice.toLowerCase())
+            : sentence.sent1.toLowerCase() === sent1.toLowerCase() &&
+              sentence.choices.includes(choice.toLowerCase())) &&
+          sentence.category === (newCategory ? newCategory : category)
       )
     ) {
       alert("This sentence is already in the database in this category !");
@@ -464,7 +463,7 @@ export default function AddSentence() {
                     </Card.Title>
                   ) : (
                     <Card.Title>
-                      - {sentence.sent1} ?
+                      - {sentence.sent1}
                       <br />* {sentence.choices[0]}
                     </Card.Title>
                   )}
